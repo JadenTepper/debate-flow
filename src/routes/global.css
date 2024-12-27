@@ -38,6 +38,8 @@ body {
 	font-family: var(--font-family);
 	font-size: var(--font-size);
 	font-weight: var(--font-weight);
+	overflow-y: clip;
+	overflow-x: auto;
 }
 body {
 	--main-margin: var(--gap);
