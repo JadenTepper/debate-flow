@@ -15,8 +15,29 @@ export const debateStyleMap = [
 
 export type DebateStyleKey = (typeof debateStyleMap)[number];
 
+export const debateTemplateMap = [
+	'primary',
+	'secondary',
+	'tertiary',
+	'quaternary'
+] as const;
+
+export type DebateTemplateKey = (typeof debateTemplateMap)[number];
+
 export function currentDebateStyle(): DebateStyle {
 	return debateStyles[debateStyleMap[settings.data.debateStyle.value as number]];
+}
+
+export function currentDebateStyleFlow(flowPostion: DebateTemplateKey): DebateStyleFlow | null {
+	let debateStyle = currentDebateStyle();
+	const index = debateTemplateMap.indexOf(flowPostion);
+
+	if (index === -1) {
+		return null;
+	}
+
+	// Safely return the corresponding debateStyle flow or null if index is out of bounds
+	return debateStyle.templates[index] || null;
 }
 
 export type DebateStyleFlow = {
@@ -27,8 +48,7 @@ export type DebateStyleFlow = {
 	starterBoxes?: string[];
 };
 export type DebateStyle = {
-	primary: DebateStyleFlow;
-	secondary?: DebateStyleFlow;
+	templates: DebateStyleFlow[];
 	timerSpeeches: TimerSpeech[];
 	prepTime?: number;
 };
@@ -36,16 +56,18 @@ export const debateStyles: {
 	[key in DebateStyleKey]: DebateStyle;
 } = {
 	policy: {
-		primary: {
-			name: 'aff',
-			columns: ['1AC', '1NC', '2AC', '2NC/1NR', '1AR', '2NR', '2AR'],
-			invert: false
-		},
-		secondary: {
-			name: 'neg',
-			columns: ['1NC', '2AC', '2NC/1NR', '1AR', '2NR', '2AR'],
-			invert: true
-		},
+		templates: [
+			{
+				name: 'aff',
+				columns: ['1AC', '1NC', '2AC', '2NC/1NR', '1AR', '2NR', '2AR'],
+				invert: false
+			},
+			{
+				name: 'neg',
+				columns: ['1NC', '2AC', '2NC/1NR', '1AR', '2NR', '2AR'],
+				invert: true
+			}
+		],
 		timerSpeeches: [
 			{
 				name: '1AC',
@@ -111,18 +133,20 @@ export const debateStyles: {
 		prepTime: 8 * 60 * 1000
 	},
 	publicForum: {
-		primary: {
-			name: 'aff',
-			columns: ['AC', 'NC', 'AR', 'NR', 'AS', 'NS', 'AFF', 'NFF'],
-			columnsSwitch: ['AC', 'NR', 'AR', 'NS', 'AS', 'NFF', 'AFF'],
-			invert: false
-		},
-		secondary: {
-			name: 'neg',
-			columns: ['NC', 'AR', 'NR', 'AS', 'NS', 'AFF', 'NFF'],
-			columnsSwitch: ['NC', 'AC', 'NR', 'AR', 'NS', 'AS', 'NFF', 'AFF'],
-			invert: true
-		},
+		templates: [
+			{
+				name: 'aff',
+				columns: ['AC', 'NC', 'AR', 'NR', 'AS', 'NS', 'AFF', 'NFF'],
+				columnsSwitch: ['AC', 'NR', 'AR', 'NS', 'AS', 'NFF', 'AFF'],
+				invert: false
+			},
+			{
+				name: 'neg',
+				columns: ['NC', 'AR', 'NR', 'AS', 'NS', 'AFF', 'NFF'],
+				columnsSwitch: ['NC', 'AC', 'NR', 'AR', 'NS', 'AS', 'NFF', 'AFF'],
+				invert: true
+			}
+		],
 		timerSpeeches: [
 			{
 				name: 'AC',
@@ -183,18 +207,32 @@ export const debateStyles: {
 		prepTime: 4 * 60 * 1000
 	},
 	lincolnDouglas: {
-		primary: {
-			name: 'aff',
-			columns: ['AC', 'NC', '1AR', 'NR', '2AR'],
-			starterBoxes: ['value', 'criterion'],
-			invert: false
-		},
-		secondary: {
-			name: 'neg',
-			columns: ['NC', '1AR', 'NR', '2AR'],
-			starterBoxes: ['value', 'criterion'],
-			invert: true
-		},
+		templates: [
+			{
+				name: 'aff',
+				columns: ['AC', 'NR', '1AR', '2NR', '2AR'],
+				starterBoxes: [""],
+				invert: false
+			},
+			{
+				name: 'neg',
+				columns: ['NC', '1AR', '2NR', '2AR'],
+				starterBoxes: [""],
+				invert: true
+			},
+			{
+				name: '1ar',
+				columns: ['1AR', '2NR', '2AR'],
+				starterBoxes: [""],
+				invert: false
+			},
+			{
+				name: '2nr',
+				columns: ['2NR', '2AR'],
+				starterBoxes: [""],
+				invert: true
+			}
+		],
 		timerSpeeches: [
 			{
 				name: 'AC',
@@ -235,64 +273,66 @@ export const debateStyles: {
 		prepTime: 4 * 60 * 1000
 	},
 	congress: {
-		primary: {
-			name: 'bill',
-			columns: [
-				'1A',
-				'Q/1N',
-				'Q/2A',
-				'Q/2N',
-				'Q/3A',
-				'Q/3N',
-				'Q/4A',
-				'Q/4N',
-				'Q/5A',
-				'Q/5N',
-				'Q/6A',
-				'Q/6N',
-				'Q/7A',
-				'Q/7N',
-				'Q/8A',
-				'Q/8N',
-				'Q/9A',
-				'Q/9N',
-				'Q/10A',
-				'Q/10N',
-				'Q/11A',
-				'Q/11N',
-				'Q/12A',
-				'Q/12N',
-				'Q/13A',
-				'Q/13N',
-				'Q/14A',
-				'Q/14N',
-				'Q/15A',
-				'Q/15N',
-				'Q/16A',
-				'Q/16N',
-				'Q/17A',
-				'Q/17N',
-				'Q/18A',
-				'Q/18N',
-				'Q/19A',
-				'Q/19N',
-				'Q/20A',
-				'Q/20N',
-				'Q/20A',
-				'Q/20N',
-				'Q/21A',
-				'Q/21N',
-				'Q/22A',
-				'Q/22N',
-				'Q/23A',
-				'Q/23N',
-				'Q/24A',
-				'Q/24N',
-				'Q/25A',
-				'Q/25N'
-			],
-			invert: false
-		},
+		templates: [
+			{
+				name: 'bill',
+				columns: [
+					'1A',
+					'Q/1N',
+					'Q/2A',
+					'Q/2N',
+					'Q/3A',
+					'Q/3N',
+					'Q/4A',
+					'Q/4N',
+					'Q/5A',
+					'Q/5N',
+					'Q/6A',
+					'Q/6N',
+					'Q/7A',
+					'Q/7N',
+					'Q/8A',
+					'Q/8N',
+					'Q/9A',
+					'Q/9N',
+					'Q/10A',
+					'Q/10N',
+					'Q/11A',
+					'Q/11N',
+					'Q/12A',
+					'Q/12N',
+					'Q/13A',
+					'Q/13N',
+					'Q/14A',
+					'Q/14N',
+					'Q/15A',
+					'Q/15N',
+					'Q/16A',
+					'Q/16N',
+					'Q/17A',
+					'Q/17N',
+					'Q/18A',
+					'Q/18N',
+					'Q/19A',
+					'Q/19N',
+					'Q/20A',
+					'Q/20N',
+					'Q/20A',
+					'Q/20N',
+					'Q/21A',
+					'Q/21N',
+					'Q/22A',
+					'Q/22N',
+					'Q/23A',
+					'Q/23N',
+					'Q/24A',
+					'Q/24N',
+					'Q/25A',
+					'Q/25N'
+				],
+				invert: false
+			},
+		],
 		timerSpeeches: [
 			{
 				name: 'speech',
@@ -302,16 +342,18 @@ export const debateStyles: {
 		]
 	},
 	worldSchools: {
-		primary: {
-			name: 'prop',
-			columns: ['P1', 'O1', 'P2', 'O2', 'PW', 'OW', 'OR', 'PR'],
-			invert: false
-		},
-		secondary: {
-			name: 'opp',
-			columns: ['O1', 'P2', 'O2', 'PW', 'OW', 'OR', 'PR'],
-			invert: true
-		},
+		templates: [
+			{
+				name: 'prop',
+				columns: ['P1', 'O1', 'P2', 'O2', 'PW', 'OW', 'OR', 'PR'],
+				invert: false
+			},
+			{
+				name: 'opp',
+				columns: ['O1', 'P2', 'O2', 'PW', 'OW', 'OR', 'PR'],
+				invert: true
+			},
+		],
 		timerSpeeches: [
 			{
 				name: 'P1',
@@ -356,16 +398,18 @@ export const debateStyles: {
 		]
 	},
 	bigQuestions: {
-		primary: {
+		templates: [
+			{
 			name: 'aff',
 			columns: ['AC', 'NC', 'ARb', 'NRb', 'A3', 'N3', 'ARt', 'NRt'],
 			invert: false
-		},
-		secondary: {
-			name: 'neg',
-			columns: ['NC', 'ARb', 'NRb', 'A3', 'N3', 'ARt', 'NRt'],
-			invert: true
-		},
+			},
+			{
+				name: 'neg',
+				columns: ['NC', 'ARb', 'NRb', 'A3', 'N3', 'ARt', 'NRt'],
+				invert: true
+			}
+		],
 		timerSpeeches: [
 			{
 				name: 'AC',
@@ -421,16 +465,18 @@ export const debateStyles: {
 		prepTime: 3 * 60 * 1000
 	},
 	nofSpar: {
-		primary: {
-			name: 'pro',
-			columns: ['PC', 'CC', 'PR', 'CR'],
-			invert: false
-		},
-		secondary: {
-			name: 'con',
-			columns: ['CC', 'PR', 'CR'],
-			invert: true
-		},
+		templates: [
+			{
+				name: 'pro',
+				columns: ['PC', 'CC', 'PR', 'CR'],
+				invert: false
+			},
+			{
+				name: 'con',
+				columns: ['CC', 'PR', 'CR'],
+				invert: true
+			},
+		],
 		timerSpeeches: [
 			{
 				name: 'PREP',
@@ -465,16 +511,18 @@ export const debateStyles: {
 		]
 	},
 	parli: {
-		primary: {
-			name: 'pro',
-			columns: ['1PC', '1OC', '2PC', '2OC/OR', 'PR'],
-			invert: false
-		},
-		secondary: {
-			name: 'opp',
-			columns: ['1OC', '2PC', '2OC/OR', 'PR'],
-			invert: true
-		},
+		templates: [
+			{
+				name: 'pro',
+				columns: ['1PC', '1OC', '2PC', '2OC/OR', 'PR'],
+				invert: false
+			},
+			{
+				name: 'opp',
+				columns: ['1OC', '2PC', '2OC/OR', 'PR'],
+				invert: true
+			}
+		],
 		timerSpeeches: [
 			{
 				name: '1PC',
@@ -509,16 +557,18 @@ export const debateStyles: {
 		]
 	},
 	classic: {
-		primary: {
-			name: 'aff',
-			columns: ['AC', 'NC/1NR', '1AR', '2NR', '2AR', 'NS', 'AS'],
-			invert: false
-		},
-		secondary: {
-			name: 'neg',
-			columns: ['NC/1NR', '1AR', '2NR', '2AR', 'AS', 'NS'],
-			invert: true
-		},
+		templates: [
+			{
+				name: 'aff',
+				columns: ['AC', 'NC/1NR', '1AR', '2NR', '2AR', 'NS', 'AS'],
+				invert: false
+			},
+			{
+				name: 'neg',
+				columns: ['NC/1NR', '1AR', '2NR', '2AR', 'AS', 'NS'],
+				invert: true
+			}
+		],
 		timerSpeeches: [
 			{
 				name: 'AC',
