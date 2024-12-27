@@ -208,3 +208,21 @@ a:hover,
 a:active {
 	color: var(--text-accent-select);
 }
+div::-webkit-scrollbar {
+	width: 6px; 
+	height: 12px; 
+}
+div::-webkit-scrollbar-thumb {
+	background: rgb(128, 128, 128); 
+	border: 2px solid var(--background-back); /* Creates a thinner thumb */
+}
+div::-webkit-scrollbar-track {
+	background: var(--background-back); 
+}
+/* Firefox-specific styles */
+@supports (-moz-appearance: none) {
+	.content {
+		scrollbar-width: thin;
+		scrollbar-color: rgb(128, 128, 128) var(--background-back);
+	}
+}

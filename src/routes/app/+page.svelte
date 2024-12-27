@@ -419,6 +419,7 @@
 	.flow {
 		width: 100%;
 		overflow-x: auto;
+		overflow-y: clip;
 		background: var(--background);
 		z-index: 0;
 		border-radius: var(--border-radius);
