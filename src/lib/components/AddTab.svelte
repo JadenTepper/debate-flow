@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from './Button.svelte';
 	import TutorialHighlight from './TutorialHighlight.svelte';
-	import { debateStyleMap, debateStyles, type DebateStyleFlow } from '$lib/models/debateStyle';
+	import { debateStyleMap, currentDebateStyleFlow, debateStyles, type DebateStyleFlow } from '$lib/models/debateStyle';
 	import { settings } from '$lib/models/settings';
 	import { onDestroy } from 'svelte';
 
@@ -14,49 +14,76 @@
 			debateStyleIndex = settings.data[key].value as number;
 		})
 	);
+	onDestroy(
+		() => {
+			console.log("Gone!")
+		}
+	);
 	$: debateStyle = debateStyles[debateStyleMap[debateStyleIndex]];
 
-	$: hasSwitch = debateStyle.primary.columnsSwitch != null;
+	let primaryFlow: DebateStyleFlow | null;
+	let secondaryFlow: DebateStyleFlow | null;
+
+	let hasSwitch: boolean;
+	$: { // Update based on debateStyleIndex because the rest work via side-effects :) 
+		if (debateStyleIndex !== undefined) {  };
+		primaryFlow = currentDebateStyleFlow("primary");
+		secondaryFlow = currentDebateStyleFlow("secondary");
+		if (primaryFlow != null) {
+			hasSwitch = primaryFlow.columnsSwitch != null;
+		}
+	}	
+
 </script>
 
 <div class="addTab" class:hasSwitch class:switch={switchSpeakers}>
 	<div class="buttons">
-		<TutorialHighlight step={5}>
-			<Button
-				text={debateStyle.primary.name}
-				palette="accent"
-				icon="add"
-				on:click={() => addFlow(debateStyle.primary)}
-				tooltip="create new {debateStyle.primary.name} flow"
-				shortcut={['control', 'n']}
-			/>
-		</TutorialHighlight>
-		{#if debateStyle.secondary != null}
-			<TutorialHighlight step={6}>
+		{#each debateStyle.templates as flow, index}
+			{#if index === 0 || index === 1}
+				<TutorialHighlight step={5 + index}> <!-- 5 is a magic number. It is the starting step when the add tab is shown  -->
+					<Button
+						text={flow.name}
+						palette={index % 2 === 0 ? "accent" : "accent-secondary"}
+						icon="add"
+						on:click={() => addFlow(flow)}
+						tooltip={`create new ${flow.name} flow`}
+						shortcut={
+							index === 0 
+								? ['control', 'n'] 
+								: index === 1 
+									? ['control', 'shift', 'n'] 
+									: null
+						}
+					/>
+				</TutorialHighlight>
+			{/if}
+			{#if index > 1} <!-- Only use the first two buttons in the tutorial -->
 				<Button
-					text={debateStyle.secondary.name}
-					palette="accent-secondary"
+					text={flow.name}
+					palette={index % 2 === 0 ? "accent" : "accent-secondary"}
 					icon="add"
-					on:click={() => {
-						const style = debateStyle.secondary;
-						if (style == null) return;
-						addFlow(style);
-					}}
-					tooltip="create new {debateStyle.secondary.name} flow"
-					shortcut={['control', 'shift', 'n']}
+					on:click={() => addFlow(flow)}
+					tooltip={`create new ${flow.name} flow`}
+					shortcut={
+						index === 0 
+							? ['control', 'n'] 
+							: index === 1 
+								? ['control', 'shift', 'n'] 
+								: null
+					}
 				/>
-			</TutorialHighlight>
-		{/if}
+			{/if}
+		{/each}
 	</div>
-	{#if debateStyle.secondary != null && hasSwitch}
+	{#if primaryFlow != null && secondaryFlow != null && hasSwitch}
 		<div class="switch">
 			<Button
 				text={'first'}
 				icon="arrowLeft"
 				palette={switchSpeakers ? 'accent-secondary' : 'accent'}
 				tooltip={switchSpeakers
-					? `set ${debateStyle.primary.name} to first speaker`
-					: `set ${debateStyle.secondary.name} to first speaker`}
+					? `set ${primaryFlow.name} to first speaker`
+					: `set ${secondaryFlow.name} to first speaker`}
 				on:click={() => (switchSpeakers = !switchSpeakers)}
 			/>
 		</div>

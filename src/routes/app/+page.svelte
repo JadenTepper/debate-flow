@@ -26,7 +26,7 @@
 	import { focusId, lastFocusIds, selectedFlowId } from '$lib/models/focus';
 	import { isChangelogVersionCurrent } from '$lib/models/version';
 	import { addNewFlow, deleteFlow, moveFlow, replaceNodes } from '$lib/models/nodeDecorateAction';
-	import { currentDebateStyle, type DebateStyleFlow } from '$lib/models/debateStyle';
+	import { currentDebateStyleFlow, type DebateStyleFlow } from '$lib/models/debateStyle';
 
 	$: unsavedChanges = $nodes.root.children.length > 0;
 
@@ -124,16 +124,23 @@
 	}
 	const keyDownHandler = createKeyDownHandler({
 		control: {
-			n: { handle: () => addFlow(currentDebateStyle()['primary']) }
+			n: {
+				handle: () => {
+					const style = currentDebateStyleFlow("primary");
+					if (style == null) return;
+					addFlow(style);
+				},
+				require: () => currentDebateStyleFlow("primary") != null
+			}
 		},
 		'control shift': {
 			n: {
 				handle: () => {
-					const style = currentDebateStyle()['secondary'];
+					const style = currentDebateStyleFlow("secondary");
 					if (style == null) return;
 					addFlow(style);
 				},
-				require: () => currentDebateStyle()['secondary'] != null
+				require: () => currentDebateStyleFlow("secondary") != null
 			}
 		},
 		'commandControl shift': {
