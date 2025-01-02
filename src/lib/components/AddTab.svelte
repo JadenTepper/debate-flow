@@ -25,25 +25,46 @@
 	let secondaryFlow: DebateStyleFlow | null;
 
 	let hasSwitch: boolean;
-	$: { // Update based on debateStyleIndex because the rest work via side-effects :) 
+	$: { // Update when debateStyleIndex changes
 		if (debateStyleIndex !== undefined) {  };
 		primaryFlow = currentDebateStyleFlow("primary");
 		secondaryFlow = currentDebateStyleFlow("secondary");
 		if (primaryFlow != null) {
 			hasSwitch = primaryFlow.columnsSwitch != null;
 		}
-	}	
+	}
+	
+	function flipPairs(arr: DebateStyleFlow[]) {
+		// produce new array where [0,1,2,3] => [1,0,3,2]
+		const result = [];
+		for (let i = 0; i < arr.length; i += 2) {
+			if (arr[i + 1]) {
+				result.push(arr[i + 1]);
+				result.push(arr[i]);
+			} else {
+				result.push(arr[i]);
+			}
+			}
+		return result;
+	}
+
+  	$: flippedStyleTemplates = flipPairs(debateStyle.templates);
+
+	$: currentStyleTemplates = switchSpeakers
+    ? flippedStyleTemplates
+    : debateStyle.templates;
 
 </script>
 
 <div class="addTab" class:hasSwitch class:switch={switchSpeakers}>
 	<div class="buttons">
-		{#each debateStyle.templates as flow, index}
+		{#each currentStyleTemplates as flow, index}
 			{#if index === 0 || index === 1}
 				<TutorialHighlight step={5 + index}> <!-- 5 is a magic number. It is the starting step when the add tab is shown  -->
+					<!-- index % 2 === (switchSpeakers ? 1 : 0) can be used instead of !flow.invert for mandatory flip-flop colors -->
 					<Button
 						text={flow.name}
-						palette={index % 2 === 0 ? "accent" : "accent-secondary"}
+						palette={!flow.invert ? "accent" : "accent-secondary"}  
 						icon="add"
 						on:click={() => addFlow(flow)}
 						tooltip={`create new ${flow.name} flow`}
@@ -60,7 +81,7 @@
 			{#if index > 1} <!-- Only use the first two buttons in the tutorial -->
 				<Button
 					text={flow.name}
-					palette={index % 2 === 0 ? "accent" : "accent-secondary"}
+					palette={!flow.invert ? "accent" : "accent-secondary"}
 					icon="add"
 					on:click={() => addFlow(flow)}
 					tooltip={`create new ${flow.name} flow`}
@@ -99,12 +120,8 @@
 		flex-direction: row;
 		gap: var(--padding);
 	}
-
 	.hasSwitch .buttons {
 		flex-direction: column;
-	}
-	.hasSwitch.switch .buttons {
-		flex-direction: column-reverse;
 	}
 	.addTab.hasSwitch {
 		display: flex;
