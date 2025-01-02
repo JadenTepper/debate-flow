@@ -211,25 +211,25 @@ export const debateStyles: {
 			{
 				name: 'aff',
 				columns: ['AC', 'NR', '1AR', '2NR', '2AR'],
-				starterBoxes: [""],
+				starterBoxes: ["type here"],
 				invert: false
 			},
 			{
 				name: 'neg',
 				columns: ['NC', '1AR', '2NR', '2AR'],
-				starterBoxes: [""],
+				starterBoxes: ["type here"],
 				invert: true
 			},
 			{
 				name: '1ar',
 				columns: ['1AR', '2NR', '2AR'],
-				starterBoxes: [""],
+				starterBoxes: ["type here"],
 				invert: false
 			},
 			{
 				name: '2nr',
 				columns: ['2NR', '2AR'],
-				starterBoxes: [""],
+				starterBoxes: ["type here"],
 				invert: true
 			}
 		],
