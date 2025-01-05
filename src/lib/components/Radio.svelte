@@ -6,6 +6,15 @@
 	export let auto: number;
 
 	const dispatch = createEventDispatcher();
+	let textField: Text;
+
+	let toggleValue: boolean = false;
+
+	function updateTextField() {
+		dispatch('forceUpdate'); 
+
+		if (textField) textField.autoWidth();
+	}
 
 	export let detail: {
 		options: string[];
@@ -20,13 +29,13 @@
 	<div class="background">
 		<div
 			class="switch"
-			style={`--pos:calc(${value} * (var(--button-size) + var(--padding) * 2) + var(--padding-small))`}
+			style={`--pos:calc(${value} * (var(--button-size) + var(--padding) * 2) + var(--padding) / 2`}
 		/>
 	</div>
 	<ul>
 		{#each detail.options as option, index}
-			<label>
-				<input type="radio" bind:group={value} {name} checked={index == value} value={index} />
+			<label class="radioLabel">
+				<input class="radioInput" type="radio" bind:group={value} {name} checked={index == value} value={index} />
 				<li>
 					<p>
 						{option}
@@ -34,13 +43,23 @@
 					{#if index == auto}
 						<p class="optionInfo">default</p>
 					{/if}
+					<label class={`palette-${palette} toggleLabel`}>
+						<div>
+							<input class="toggleInput" type="checkbox" checked={toggleValue}/>
+							<p>Test</p>
+							<div class="toggleBackground">
+								<div class="toggleSwitch" />
+							</div>
+						</div>
+					</label>
 				</li>
 			</label>
 		{/each}
 		{#if detail.customOption && detail.customOptionValue != null}
-			<label>
+			<label class="radioLabel">
 				<input
 					type="radio"
+					class="radioInput"
 					bind:group={value}
 					{name}
 					checked={value == detail.options.length}
@@ -51,12 +70,22 @@
 						placeholder="custom"
 						nowrap={true}
 						bind:value={detail.customOptionValue}
-						on:input={() => dispatch('forceUpdate')}
+						bind:this={textField}
+						on:input={updateTextField}
 						on:focus={() => (value = detail.options.length)}
 					/>
 					{#if detail.customOptionValue != ''}
 						<p class="optionInfo">custom</p>
 					{/if}
+					<label class={`palette-${palette} toggleLabel`}>
+						<div>
+							<input class="toggleInput" type="checkbox" checked={toggleValue}/>
+							<p>Test</p>
+							<div class="toggleBackground">
+								<div class="toggleSwitch"/>
+							</div>
+						</div>
+					</label>
 				</li>
 			</label>
 		{/if}
@@ -110,7 +139,7 @@
 		width: calc(100% - var(--button-size) - var(--padding));
 		display: block;
 	}
-	label {
+	.radioLabel {
 		position: relative;
 		height: calc(var(--button-size) + var(--padding) * 2);
 		margin-left: calc(-1 * (var(--button-size) + var(--padding)));
@@ -122,18 +151,20 @@
 	}
 	p {
 		margin: 0;
+		height: min-content;
 	}
 
-	label > li {
+	.radioLabel > li {
 		display: flex;
 		flex-direction: row;
-		padding: var(--padding);
+		padding: calc(var(--padding) / 2) var(--padding) calc(var(--padding) / 2) var(--padding);
 		border-radius: var(--border-radius);
+		align-items: center;
 	}
-	label:hover > li {
+	.radioLabel:hover > li {
 		background-color: var(--this-background-indent);
 	}
-	label:active > li {
+	.radioLabel:active > li {
 		background-color: var(--this-background-active);
 		color: var(--this-text);
 	}
@@ -145,12 +176,70 @@
 	}
 	.optionInfo {
 		opacity: 0;
-		margin-left: auto;
+		margin-left: var(--padding);
 		color: var(--this-text-weak);
 		transition: opacity var(--transition-speed);
 		width: min-content;
 	}
-	label:hover > li > .optionInfo {
+	.radioLabel:hover > li > .optionInfo {
 		opacity: 1;
 	}
+	.toggleLabel {
+		margin-left: auto;
+		padding: 0;
+		height: min-content;
+		pointer-events: none;
+	}
+	.radioInput:checked + li > .toggleLabel {
+		pointer-events: all;
+	}
+	.toggleLabel > div {
+		display: grid;
+		grid-template-columns: 1fr 1fr; 
+  		grid-template-rows: 1fr;
+		width: auto;
+		align-items: center;
+		opacity: 0;
+		transition: opacity var(--transition-speed);
+	}
+	.radioInput:checked + li > .toggleLabel > div {
+		opacity: 1;
+	}
+	.toggleBackground {
+		position: relative;
+		box-sizing: content-box;
+		padding: var(--padding-small);
+		width: calc(var(--button-size) * 2);
+		height: var(--button-size);
+		background-color: var(--this-background-indent);
+		border-radius: var(--border-radius);
+		transition: background var(--transition-speed);
+		filter: saturate(0.2);
+	}
+	.toggleBackground:hover {
+		background-color: var(--this-background-active);
+	}
+	.toggleSwitch {
+		position: absolute;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+
+		box-sizing: content-box;
+		padding: calc(var(--padding-small) - var(--padding-small));
+		width: var(--button-size);
+		height: var(--button-size);
+		left: var(--padding-small);
+		top: var(--padding-small);
+
+		border: none;
+		background-color: var(--this-color);
+		color: var(--this-text);
+		border-radius: var(--border-radius);
+		transition: background var(--transition-speed), left var(--transition-speed),
+        color var(--transition-speed);
+	}
+	.toggleInput:checked ~ .toggleBackground > .toggleSwitch {
+    	left: calc(var(--button-size) + var(--padding-small));
+  	}
 </style>
