@@ -209,7 +209,9 @@
 		height: var(--button-size);
 		background-color: var(--this-background-indent);
 		border-radius: var(--border-radius);
-		transition: background var(--transition-speed);
+		transition: background var(--transition-speed), filter var(--transition-speed);
+	}
+	.radioLabel:hover > li > .toggleLabel > div >.toggleBackground {
 		filter: saturate(0.2);
 	}
 	.toggleBackground:hover {
