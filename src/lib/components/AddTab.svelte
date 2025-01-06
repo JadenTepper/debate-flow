@@ -1,38 +1,34 @@
 <script lang="ts">
 	import Button from './Button.svelte';
 	import TutorialHighlight from './TutorialHighlight.svelte';
-	import { debateStyleMap, currentDebateStyleFlow, debateStyles, type DebateStyleFlow } from '$lib/models/debateStyle';
+	import { debateStyleMap, currentDebateStyleFlow, debateStyles, type DebateStyleFlow, currentDebateTemplates } from '$lib/models/debateStyle';
 	import { settings } from '$lib/models/settings';
 	import { onDestroy } from 'svelte';
 
 	export let addFlow: (type: DebateStyleFlow) => void;
 	export let switchSpeakers: boolean;
 
-	let debateStyleIndex = settings.data['debateStyle'].value as number;
-	onDestroy(
-		settings.subscribe(['debateStyle'], (key: string) => {
-			debateStyleIndex = settings.data[key].value as number;
-		})
-	);
 	onDestroy(
 		() => {
 			console.log("Gone!")
 		}
 	);
-	$: debateStyle = debateStyles[debateStyleMap[debateStyleIndex]];
 
 	let primaryFlow: DebateStyleFlow | null;
 	let secondaryFlow: DebateStyleFlow | null;
+	let debateStyleTemplates: DebateStyleFlow[];
 
 	let hasSwitch: boolean;
-	$: { // Update when debateStyleIndex changes
-		if (debateStyleIndex !== undefined) {  };
-		primaryFlow = currentDebateStyleFlow("primary");
-		secondaryFlow = currentDebateStyleFlow("secondary");
-		if (primaryFlow != null) {
-			hasSwitch = primaryFlow.columnsSwitch != null;
-		}
-	}
+	onDestroy(
+		settings.subscribe(['debateStyle'], (key: string) => {
+			primaryFlow = currentDebateStyleFlow("primary");
+			secondaryFlow = currentDebateStyleFlow("secondary");
+			debateStyleTemplates = currentDebateTemplates();
+			if (primaryFlow != null) {
+				hasSwitch = primaryFlow.columnsSwitch != null;
+			}
+		})
+	);
 	
 	function flipPairs(arr: DebateStyleFlow[]) {
 		// produce new array where [0,1,2,3] => [1,0,3,2]
@@ -48,11 +44,11 @@
 		return result;
 	}
 
-  	$: flippedStyleTemplates = flipPairs(debateStyle.templates);
+  	$: flippedStyleTemplates = flipPairs(debateStyleTemplates);
 
-	$: currentStyleTemplates = switchSpeakers
+	$: currentStyleTemplates = (switchSpeakers && hasSwitch)
     ? flippedStyleTemplates
-    : debateStyle.templates;
+    : debateStyleTemplates;
 
 </script>
 

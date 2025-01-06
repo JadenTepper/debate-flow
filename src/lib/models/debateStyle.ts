@@ -1,4 +1,4 @@
-import { settings } from './settings';
+import { type RadioSetting, settings } from './settings';
 import type { TimerSpeech } from './timer';
 
 export const debateStyleMap = [
@@ -19,25 +19,41 @@ export const debateTemplateMap = [
 	'primary',
 	'secondary',
 	'tertiary',
-	'quaternary'
+	'quaternary',
+	'quinary'
 ] as const;
 
 export type DebateTemplateKey = (typeof debateTemplateMap)[number];
 
-export function currentDebateStyle(): DebateStyle {
-	return debateStyles[debateStyleMap[settings.data.debateStyle.value as number]];
+export function currentDebateTemplates(): DebateStyleFlow[] {
+	const debateStyleIndex = settings.data.debateStyle.value as number
+	const debateStyle = debateStyles[debateStyleMap[debateStyleIndex]];
+
+	if (settings.data.debateStyle.type === "radio") {
+		let styleToggles = (settings.data.debateStyle as RadioSetting).detail.secondaryToggleValues;
+		if (styleToggles && styleToggles[debateStyleIndex] && debateStyle.secondaryTemplates) {
+			return debateStyle.secondaryTemplates;
+		}
+	}
+
+	return debateStyle.templates;
 }
 
-export function currentDebateStyleFlow(flowPostion: DebateTemplateKey): DebateStyleFlow | null {
-	let debateStyle = currentDebateStyle();
-	const index = debateTemplateMap.indexOf(flowPostion);
+export function currentDebateStyleFlow(flowPostion: DebateTemplateKey | number): DebateStyleFlow | null {
+	let debateTemplates = currentDebateTemplates();
+
+	let index: number;
+	if (typeof flowPostion !== 'number') {
+		index = debateTemplateMap.indexOf(flowPostion);
+	} else {
+		index = flowPostion as number;
+	}
 
 	if (index === -1) {
 		return null;
 	}
 
-	// Safely return the corresponding debateStyle flow or null if index is out of bounds
-	return debateStyle.templates[index] || null;
+	return debateTemplates[index] || null;
 }
 
 export type DebateStyleFlow = {
@@ -49,6 +65,7 @@ export type DebateStyleFlow = {
 };
 export type DebateStyle = {
 	templates: DebateStyleFlow[];
+	secondaryTemplates?: DebateStyleFlow[]; // Toggle must be added to the style in "settings.ts" for this to be used
 	timerSpeeches: TimerSpeech[];
 	prepTime?: number;
 };
@@ -208,6 +225,20 @@ export const debateStyles: {
 	},
 	lincolnDouglas: {
 		templates: [
+			{
+				name: 'aff',
+				columns: ['AC', 'NR', '1AR', '2NR', '2AR'],
+				starterBoxes: ["value", "criterion"],
+				invert: false
+			},
+			{
+				name: 'neg',
+				columns: ['NC', '1AR', '2NR', '2AR'],
+				starterBoxes: ["value", "criterion"],
+				invert: true
+			},
+		],
+		secondaryTemplates: [
 			{
 				name: 'aff',
 				columns: ['AC', 'NR', '1AR', '2NR', '2AR'],

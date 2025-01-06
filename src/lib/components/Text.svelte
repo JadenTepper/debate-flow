@@ -23,13 +23,6 @@
 			textarea.style.height = textarea.scrollHeight + 'px';
 		}
 	}
-	export function autoWidth() {
-		if (textarea) {
-			textarea.value = textarea.value.replace(/\r?\n|\r/g, '');
-			textarea.style.width = '0px';
-			textarea.style.width = textarea.scrollWidth + 'px';
-		}
-	}
 
 	afterUpdate(function () {
 		autoHeight();

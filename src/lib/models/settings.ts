@@ -1,22 +1,24 @@
-type SettingBasic<T> = {
+export type SettingBasic<T> = {
 	name: string;
 	value: T;
 	auto: T;
 	type: string;
 	info?: string;
 };
-type ToggleSetting = SettingBasic<boolean> & {
+export type ToggleSetting = SettingBasic<boolean> & {
 	type: 'toggle';
 };
-type RadioSetting = SettingBasic<number> & {
+export type RadioSetting = SettingBasic<number> & {
 	type: 'radio';
 	detail: {
 		options: string[];
+		secondaryToggles?: string[]; // Must align index-wise with options and empty string disables the toggle 
+		secondaryToggleValues?: boolean[]; // This list must be initialized if secondary toggles are specified
 		customOption?: boolean;
 		customOptionValue?: string;
 	};
 };
-type SliderSetting = SettingBasic<number> & {
+export type SliderSetting = SettingBasic<number> & {
 	type: 'slider';
 	detail: {
 		min: number;
@@ -61,7 +63,7 @@ class Settings {
 		};
 	}
 	saveToLocalStorage() {
-		const jsonData: { [key: string]: number | boolean | string } = {};
+		const jsonData: { [key: string]: number | boolean | boolean[] | string } = {};
 		for (const key of Object.keys(this.data)) {
 			if (this.data[key].value != this.data[key].auto) {
 				jsonData[key] = this.data[key].value;
@@ -69,6 +71,9 @@ class Settings {
 					const setting = this.data[key] as RadioSetting;
 					if (setting.detail.customOptionValue) {
 						jsonData[key + 'Custom'] = setting.detail.customOptionValue;
+					}
+					if (setting.detail.secondaryToggleValues) {
+						jsonData[key + 'Toggles'] = setting.detail.secondaryToggleValues
 					}
 				}
 			}
@@ -86,6 +91,9 @@ class Settings {
 						const setting = this.data[key] as RadioSetting;
 						if (jsonData[key + 'Custom']) {
 							setting.detail.customOptionValue = jsonData[key + 'Custom'];
+						}
+						if (setting.detail.secondaryToggleValues) {
+							setting.detail.secondaryToggleValues = jsonData[key + 'Toggles'];
 						}
 					}
 					this.setValue(key, jsonData[key]);
@@ -134,6 +142,28 @@ export const settings: Settings = new Settings({
 				'NOF SPAR',
 				'Parli',
 				'Classic'
+			],
+			secondaryToggles: [ 
+				"",
+				"",
+				"Advanced",
+				"",
+				"",
+				"",
+				"",
+				"",
+				""
+			],
+			secondaryToggleValues: [
+				false, 
+				false,
+				false,
+				false,
+				false,
+				false,
+				false,
+				false,
+				false
 			]
 		},
 		info: "Already created flows won't be affected by this setting"
