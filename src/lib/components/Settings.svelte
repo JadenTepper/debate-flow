@@ -5,7 +5,7 @@
 	import { settingsGroups, settings } from '$lib/models/settings';
 	import { onDestroy } from 'svelte';
 
-	export const closePopup: () => void = () => {};
+	export let closePopup: () => void = () => {};
 	onDestroy(() => {
 		settings.saveToLocalStorage();
 	});
