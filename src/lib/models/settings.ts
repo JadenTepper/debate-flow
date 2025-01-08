@@ -13,7 +13,7 @@ export type RadioSetting = SettingBasic<number> & {
 	detail: {
 		options: string[];
 		secondaryToggles?: string[]; // Must align index-wise with options and empty string disables the toggle 
-		secondaryToggleValues?: boolean[]; // This list must be initialized if secondary toggles are specified
+		secondaryToggleValues?: boolean[]; // Auto-initializes to false in radio.svelte
 		customOption?: boolean;
 		customOptionValue?: string;
 	};
@@ -92,7 +92,7 @@ class Settings {
 						if (jsonData[key + 'Custom']) {
 							setting.detail.customOptionValue = jsonData[key + 'Custom'];
 						}
-						if (setting.detail.secondaryToggleValues) {
+						if (jsonData[key + 'Toggles']) {
 							setting.detail.secondaryToggleValues = jsonData[key + 'Toggles'];
 						}
 					}
@@ -146,24 +146,13 @@ export const settings: Settings = new Settings({
 			secondaryToggles: [ 
 				"",
 				"",
-				"Advanced",
+				"Varsity",
 				"",
 				"",
 				"",
 				"",
 				"",
 				""
-			],
-			secondaryToggleValues: [
-				false, 
-				false,
-				false,
-				false,
-				false,
-				false,
-				false,
-				false,
-				false
 			]
 		},
 		info: "Already created flows won't be affected by this setting"

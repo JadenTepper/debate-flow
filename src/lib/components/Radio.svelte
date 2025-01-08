@@ -20,6 +20,11 @@
 	$: {
 		if (detail.secondaryToggleValues) { // If secondaryToggleValues updates we need to force an update up the chain
 			dispatch('forceUpdate');
+		} else if (detail.secondaryToggles) { // Set all toggles to false if undefined
+			detail.secondaryToggles.forEach((toggle, index) => {
+				if (!detail.secondaryToggleValues) detail.secondaryToggleValues = [];
+				detail.secondaryToggleValues[index] = false; 
+			});
 		}
 	}
 </script>

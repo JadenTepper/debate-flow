@@ -34,6 +34,8 @@ export function currentDebateTemplates(): DebateStyleFlow[] {
 		if (styleToggles && styleToggles[debateStyleIndex] && debateStyle.secondaryTemplates) {
 			return debateStyle.secondaryTemplates;
 		}
+	} else {
+		throw new Error("Unexpected state: settings.data.debateStyle should have type Radio but has a different type or doesn't exist.");
 	}
 
 	return debateStyle.templates;

@@ -3,7 +3,7 @@
 	import Radio from './Radio.svelte';
 	import Slider from './Slider.svelte';
 	import Button from './Button.svelte';
-	import { settings, type Setting } from '$lib/models/settings';
+	import { settings, type RadioSetting, type Setting } from '$lib/models/settings';
 	import { tweened } from 'svelte/motion';
 	import { onDestroy } from 'svelte';
 	export let setting: Setting;
@@ -18,6 +18,10 @@
 	$: value, setValue(value);
 
 	function resetValue() {
+		if (setting.type == 'radio') {
+			setting.detail.secondaryToggleValues = undefined; // Resets toggles
+		}
+
 		settings.setValue(key, setting.auto);
 		value = setting.value;
 	}
@@ -39,13 +43,20 @@
 		});
 		$spotlight = 0;
 	}
+
+	$: showResetButton = (
+		value !== setting.auto ||
+		setting.type === 'radio' &&
+		setting.detail.secondaryToggleValues &&
+		!setting.detail.secondaryToggleValues.every(x => x === false)
+	);
 </script>
 
 <div class="top" bind:this={element} style={`--spotlight:${$spotlight}`}>
 	<span class="above">
 		<div class="titleReset">
 			<h2>{setting.name}</h2>
-			<div class="reset" class:hidden={value == setting.auto}>
+			<div class="reset" class:hidden={!showResetButton}>
 				<Button
 					icon="arrowRoundLeft"
 					tooltip="reset to default"
