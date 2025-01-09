@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Text from './Text.svelte';
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onDestroy } from 'svelte';
 	export let name: string;
 	export let value: number;
+	export let secondaryToggleValues: boolean[] | undefined;
 	export let auto: number;
 
 	const dispatch = createEventDispatcher();
@@ -11,21 +12,16 @@
 	export let detail: {
 		options: string[];
 		secondaryToggles?: string[];
+		secondaryToggleAutos?: boolean[];
 		secondaryToggleValues?: boolean[];
 		customOption?: boolean;
 		customOptionValue?: string;
 	};
 
 	$: palette = auto == value ? 'accent-secondary' : 'accent';
-	$: {
-		if (detail.secondaryToggleValues) { // If secondaryToggleValues updates we need to force an update up the chain
-			dispatch('forceUpdate');
-		} else if (detail.secondaryToggles) { // Set all toggles to false if undefined
-			detail.secondaryToggles.forEach((toggle, index) => {
-				if (!detail.secondaryToggleValues) detail.secondaryToggleValues = [];
-				detail.secondaryToggleValues[index] = false; 
-			});
-		}
+
+	if (detail.secondaryToggles && detail.secondaryToggleAutos && !secondaryToggleValues) { // Set all toggles to false if undefined
+		secondaryToggleValues = [...detail.secondaryToggleAutos];
 	}
 </script>
 
@@ -47,10 +43,10 @@
 					{#if index == auto}
 						<p class="optionInfo">default</p>
 					{/if}
-					{#if detail.secondaryToggles && detail.secondaryToggles[index] && detail.secondaryToggleValues}
+					{#if detail.secondaryToggles && detail.secondaryToggles[index] && secondaryToggleValues}
 						<label class={`palette-${palette} toggleLabel`}>
 							<div>
-								<input class="toggleInput" type="checkbox" bind:checked={detail.secondaryToggleValues[index]}/>
+								<input class="toggleInput" type="checkbox" bind:checked={secondaryToggleValues[index]}/>
 								<p> {detail.secondaryToggles[index]} </p>
 								<div class="toggleBackground">
 									<div class="toggleSwitch"/>

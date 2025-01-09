@@ -13,7 +13,8 @@ export type RadioSetting = SettingBasic<number> & {
 	detail: {
 		options: string[];
 		secondaryToggles?: string[]; // Must align index-wise with options and empty string disables the toggle 
-		secondaryToggleValues?: boolean[]; // Auto-initializes to false in radio.svelte
+		secondaryToggleAutos?: boolean[]; // Must align index-wise with options
+		secondaryToggleValues?: boolean[]; 
 		customOption?: boolean;
 		customOptionValue?: string;
 	};
@@ -106,6 +107,9 @@ class Settings {
 	}
 	resetToAuto() {
 		for (const key in this.data) {
+			if (this.data[key].type == 'radio' && this.data[key].detail.secondaryToggleValues && this.data[key].detail.secondaryToggleAutos) {
+				this.data[key].detail.secondaryToggleValues = [...this.data[key].detail.secondaryToggleAutos]; // Resets toggles
+			}
 			this.setValue(key, this.data[key].auto);
 		}
 	}
@@ -144,15 +148,25 @@ export const settings: Settings = new Settings({
 				'Classic'
 			],
 			secondaryToggles: [ 
+				"test",
 				"",
-				"",
-				"Varsity",
+				"Varsity Mode",
 				"",
 				"",
 				"",
 				"",
 				"",
 				""
+			], secondaryToggleAutos: [
+				false,
+				false,
+				false,
+				false,
+				false,
+				false,
+				false,
+				false,
+				false
 			]
 		},
 		info: "Already created flows won't be affected by this setting"

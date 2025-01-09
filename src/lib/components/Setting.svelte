@@ -3,34 +3,57 @@
 	import Radio from './Radio.svelte';
 	import Slider from './Slider.svelte';
 	import Button from './Button.svelte';
-	import { settings, type RadioSetting, type Setting } from '$lib/models/settings';
+	import { settings, type Setting } from '$lib/models/settings';
 	import { tweened } from 'svelte/motion';
 	import { onDestroy } from 'svelte';
 	export let setting: Setting;
 	export let key: string;
 
 	let value: any = setting.value;
+	let secondaryToggleValues: boolean[] | undefined;
 
 	function setValue(value: any) {
 		settings.setValue(key, value);
-		value = setting.value;
 	}
 	$: value, setValue(value);
+	$: {
+		if (setting.type == "radio") {
+			secondaryToggleValues, setValue(value);
+		}
+	}
 
 	function resetValue() {
-		if (setting.type == 'radio') {
-			setting.detail.secondaryToggleValues = undefined; // Resets toggles
+		if (setting.type == 'radio' && setting.detail.secondaryToggleValues && setting.detail.secondaryToggleAutos) {
+			setting.detail.secondaryToggleValues = [...setting.detail.secondaryToggleAutos]; // Resets toggles
 		}
 
 		settings.setValue(key, setting.auto);
 		value = setting.value;
 	}
 
+	
+	function arraysAreEqual<T>(arr1: T[], arr2: T[]): boolean{
+    	return arr1.length === arr2.length && arr1.every((val, index) => val === arr2[index]);
+	}
+
+	let showResetButton = false;
 	onDestroy(
 		settings.subscribe([key], function (key) {
 			if (setting.value != value) {
 				value = setting.value;
 			}
+
+			if (setting.type == 'radio' && setting.detail.secondaryToggleValues != secondaryToggleValues) {
+				secondaryToggleValues = setting.detail.secondaryToggleValues;
+			}
+
+			showResetButton = (
+				value !== setting.auto ||
+				setting.type === 'radio' &&
+				setting.detail.secondaryToggleValues &&
+				setting.detail.secondaryToggleAutos &&
+				!(arraysAreEqual(setting.detail.secondaryToggleValues, setting.detail.secondaryToggleAutos))
+			) as boolean;
 		})
 	);
 
@@ -43,13 +66,6 @@
 		});
 		$spotlight = 0;
 	}
-
-	$: showResetButton = (
-		value !== setting.auto ||
-		setting.type === 'radio' &&
-		setting.detail.secondaryToggleValues &&
-		!setting.detail.secondaryToggleValues.every(x => x === false)
-	);
 </script>
 
 <div class="top" bind:this={element} style={`--spotlight:${$spotlight}`}>
@@ -77,13 +93,14 @@
 		<Radio
 			name={setting.name}
 			bind:value
+			bind:secondaryToggleValues
 			auto={setting.auto}
-			detail={setting.detail}
+			bind:detail={setting.detail}
 			on:forceUpdate={() => setValue(value)}
 		/>
 	{/if}
 	{#if setting.type == 'slider'}
-		<Slider bind:value auto={setting.auto} detail={setting.detail} />
+		<Slider bind:value auto={setting.auto} bind:detail={setting.detail} />
 	{/if}
 	{#if setting.info && setting.type == 'toggle'}
 		<p class="info">{setting.info}</p>
