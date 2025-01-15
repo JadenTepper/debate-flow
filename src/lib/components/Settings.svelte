@@ -4,6 +4,7 @@
 	import ButtonBar from './ButtonBar.svelte';
 	import { settingsGroups, settings } from '$lib/models/settings';
 	import { onDestroy } from 'svelte';
+	import { settingScrollerIn, settingScrollerOut } from '$lib/models/transition';
 
 	export const closePopup: () => void = () => {};
 	onDestroy(() => {
@@ -21,6 +22,28 @@
 	function scrollToGroupHeader(groupIndex: number) {
 		groupHeaderElements[groupIndex].scrollIntoView();
 	}
+	let groupVisibilities: boolean[];
+	let settingVisibilities: boolean[][];
+	function updateVisibilities() {
+		groupVisibilities = settingsGroups.map((group, _groupIndex) => {
+			return group.settings.some((key) => {
+				const cond = settings.data[key].visibilityCondition;
+				return !cond || cond();
+			});
+		});
+		settingVisibilities = settingsGroups.map((group, _groupIndex) => {
+			return group.settings.map((key, _index) => {
+				if (!settings.data[key].visibilityCondition || settings.data[key].visibilityCondition && settings.data[key].visibilityCondition()) {
+					return true;
+				}
+				return false;
+			});
+		});
+	}
+	updateVisibilities();
+	onDestroy(settings.subscribe(["any"], () => {
+		updateVisibilities();
+	}));
 </script>
 
 <div class="top palette-plain">
@@ -28,22 +51,26 @@
 		<div class="outlineScroll" class:customScrollbar={settings.data.customScrollbar.value}>
 			<ul>
 				{#each settingsGroups as group, groupIndex}
-					<li class="title">
-						<button
-							on:click={(e) => {
-								scrollToGroupHeader(groupIndex);
-							}}
-						>
-							{group.name}
-						</button>
-					</li>
-					{#each group.settings as key, index}
-						<li>
-							<button on:click={() => scrollToSettingElement(groupIndex, index)}>
-								{settings.data[key].name}
+					{#if groupVisibilities[groupIndex]}
+						<li class="title">
+							<button
+								on:click={(e) => {
+									scrollToGroupHeader(groupIndex);
+								}}
+							>
+								{group.name}
 							</button>
 						</li>
-					{/each}
+						{#each group.settings as key, index}
+							{#if settingVisibilities[groupIndex][index]}
+								<li in:settingScrollerIn={{skip:false}} out:settingScrollerOut={{skip:false}}>
+									<button on:click={() => scrollToSettingElement(groupIndex, index)}>
+										{settings.data[key].name}
+									</button>
+								</li>
+							{/if}
+						{/each}
+					{/if}
 				{/each}
 			</ul>
 		</div>
@@ -68,18 +95,22 @@
 					<Setting {key} setting={settings.data[key]} bind:this={settingComponents[index]} />
 				{/each} -->
 				{#each settingsGroups as group, groupIndex}
-					<li class="title" bind:this={groupHeaderElements[groupIndex]}>
-						<h1>
-							{group.name}
-						</h1>
-					</li>
-					{#each group.settings as key, index}
-						<Setting
-							{key}
-							setting={settings.data[key]}
-							bind:this={settingComponents[groupIndex][index]}
-						/>
-					{/each}
+					{#if groupVisibilities[groupIndex]}
+						<li class="title" bind:this={groupHeaderElements[groupIndex]}>
+							<h1>
+								{group.name}
+							</h1>
+						</li>
+						{#each group.settings as key, index}
+							{#if settingVisibilities[groupIndex][index]}
+								<Setting
+									{key}
+									setting={settings.data[key]}
+									bind:this={settingComponents[groupIndex][index]}
+								/>
+							{/if}
+						{/each}
+					{/if}
 				{/each}
 			</ul>
 		</section>

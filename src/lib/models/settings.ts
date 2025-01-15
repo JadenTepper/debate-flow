@@ -4,6 +4,7 @@ type SettingBasic<T> = {
 	auto: T;
 	type: string;
 	info?: string;
+	visibilityCondition?: () => boolean;
 };
 type ToggleSetting = SettingBasic<boolean> & {
 	type: 'toggle';
@@ -137,6 +138,15 @@ export const settings: Settings = new Settings({
 			]
 		},
 		info: "Already created flows won't be affected by this setting"
+	},
+	debateStyleAtVarsityLevel: {
+		name: 'Varsity styled flows',
+		value: false,
+		auto: false,
+		type: 'toggle',
+		visibilityCondition: () => {
+			return settings.data.debateStyle.value == 2;
+		}
 	},
 	colorTheme: {
 		name: 'Color theme',
@@ -397,6 +407,7 @@ export const settingsGroups: SettingsGroup[] = [
 		name: 'General',
 		settings: [
 			'debateStyle',
+			'debateStyleAtVarsityLevel',
 			'colorTheme',
 			'columnWidth',
 			'transitionSpeed',

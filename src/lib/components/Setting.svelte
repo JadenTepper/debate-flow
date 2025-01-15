@@ -6,6 +6,7 @@
 	import { settings, type Setting } from '$lib/models/settings';
 	import { tweened } from 'svelte/motion';
 	import { onDestroy } from 'svelte';
+	import { settingIn, settingOut } from '$lib/models/transition';
 	export let setting: Setting;
 	export let key: string;
 
@@ -41,7 +42,7 @@
 	}
 </script>
 
-<div class="top" bind:this={element} style={`--spotlight:${$spotlight}`}>
+<div class="top" bind:this={element} style={`--spotlight:${$spotlight}`} in:settingIn={{skip: false}} out:settingOut={{skip: false}}>
 	<span class="above">
 		<div class="titleReset">
 			<h2>{setting.name}</h2>
@@ -95,10 +96,9 @@
 		display: flex;
 		flex-direction: row;
 		gap: 1em;
-		height: var(--button-size);
 		align-items: center;
 		padding-bottom: var(--padding);
-		height: 100%;
+		height: auto;
 	}
 	.above h2 {
 		width: max-content;
