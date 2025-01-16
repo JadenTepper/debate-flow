@@ -1,39 +1,35 @@
 <script lang="ts">
 	import Button from './Button.svelte';
 	import TutorialHighlight from './TutorialHighlight.svelte';
-	import { debateStyleMap, currentDebateStyleFlow, debateStyles, type DebateStyleFlow } from '$lib/models/debateStyle';
+	import { debateStyleMap, getDebateStyleFlow, debateStyles, type DebateStyleFlow, getAllDebateStyleFlows } from '$lib/models/debateStyle';
 	import { settings } from '$lib/models/settings';
 	import { onDestroy } from 'svelte';
 
 	export let addFlow: (type: DebateStyleFlow) => void;
 	export let switchSpeakers: boolean;
 
-	let debateStyleIndex = settings.data['debateStyle'].value as number;
-	onDestroy(
-		settings.subscribe(['debateStyle'], (key: string) => {
-			debateStyleIndex = settings.data[key].value as number;
-		})
-	);
 	onDestroy(
 		() => {
 			console.log("Gone!")
 		}
 	);
-	$: debateStyle = debateStyles[debateStyleMap[debateStyleIndex]];
 
 	let primaryFlow: DebateStyleFlow | null;
 	let secondaryFlow: DebateStyleFlow | null;
-
+	let templates: DebateStyleFlow[];
 	let hasSwitch: boolean;
-	$: { // Update when debateStyleIndex changes
-		if (debateStyleIndex !== undefined) {  };
-		primaryFlow = currentDebateStyleFlow("primary");
-		secondaryFlow = currentDebateStyleFlow("secondary");
-		if (primaryFlow != null) {
-			hasSwitch = primaryFlow.columnsSwitch != null;
-		}
-	}
-	
+
+	onDestroy(
+		settings.subscribe(['any'], (key: string) => { // This could be a specific subscribe, but it doesn't hurt performance much to subscribe to all and is easier
+			templates = getAllDebateStyleFlows();
+			primaryFlow = getDebateStyleFlow("primary");
+			secondaryFlow = getDebateStyleFlow("secondary");
+			if (primaryFlow != null) {
+				hasSwitch = primaryFlow.columnsSwitch != null;
+			}
+		})
+	);
+
 	function flipPairs(arr: DebateStyleFlow[]) {
 		// produce new array where [0,1,2,3] => [1,0,3,2]
 		const result = [];
@@ -48,11 +44,11 @@
 		return result;
 	}
 
-  	$: flippedStyleTemplates = flipPairs(debateStyle.templates);
+  	$: flippedTemplates = flipPairs(templates);
 
-	$: currentStyleTemplates = switchSpeakers
-    ? flippedStyleTemplates
-    : debateStyle.templates;
+	$: currentStyleTemplates = (hasSwitch && switchSpeakers)
+    ? flippedTemplates
+    : templates;
 
 </script>
 

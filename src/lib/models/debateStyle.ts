@@ -24,20 +24,32 @@ export const debateTemplateMap = [
 
 export type DebateTemplateKey = (typeof debateTemplateMap)[number];
 
-export function currentDebateStyle(): DebateStyle {
+export function getDebateStyle(): DebateStyle {
 	return debateStyles[debateStyleMap[settings.data.debateStyle.value as number]];
 }
+export function getAllDebateStyleFlows(): DebateStyleFlow[] {
+	let debateStyle = getDebateStyle();
+	if (debateStyle.altFlowSelectorSettingName && debateStyle.altFlowSelectorSettingName in settings.data) {
+		const subflow = debateStyle[`altFlows${settings.data[debateStyle.altFlowSelectorSettingName].value as number}`];
+		if (subflow) return subflow;
+	}
+	return debateStyle.flows;
+}
+export function getDebateStyleFlow(flowPostion: DebateTemplateKey | number): DebateStyleFlow | null {
+	let debateFlows = getAllDebateStyleFlows();
 
-export function currentDebateStyleFlow(flowPostion: DebateTemplateKey): DebateStyleFlow | null {
-	let debateStyle = currentDebateStyle();
-	const index = debateTemplateMap.indexOf(flowPostion);
+	let index;
+	if (typeof flowPostion == "number") {
+		index = flowPostion;
+	} else {
+		index = debateTemplateMap.indexOf(flowPostion);
+	}
 
 	if (index === -1) {
 		return null;
 	}
 
-	// Safely return the corresponding debateStyle flow or null if index is out of bounds
-	return debateStyle.templates[index] || null;
+	return debateFlows[index] || null;
 }
 
 export type DebateStyleFlow = {
@@ -48,15 +60,18 @@ export type DebateStyleFlow = {
 	starterBoxes?: string[];
 };
 export type DebateStyle = {
-	templates: DebateStyleFlow[];
+	flows: DebateStyleFlow[];
+	altFlowSelectorSettingName?: string;
 	timerSpeeches: TimerSpeech[];
 	prepTime?: number;
+} & {
+	[K in `altFlows${number}`]?: DebateStyleFlow[];
 };
 export const debateStyles: {
 	[key in DebateStyleKey]: DebateStyle;
 } = {
 	policy: {
-		templates: [
+		flows: [
 			{
 				name: 'aff',
 				columns: ['1AC', '1NC', '2AC', '2NC/1NR', '1AR', '2NR', '2AR'],
@@ -133,7 +148,7 @@ export const debateStyles: {
 		prepTime: 8 * 60 * 1000
 	},
 	publicForum: {
-		templates: [
+		flows: [
 			{
 				name: 'aff',
 				columns: ['AC', 'NC', 'AR', 'NR', 'AS', 'NS', 'AFF', 'NFF'],
@@ -207,7 +222,22 @@ export const debateStyles: {
 		prepTime: 4 * 60 * 1000
 	},
 	lincolnDouglas: {
-		templates: [
+		flows: [
+			{
+				name: 'aff',
+				columns: ['AC', 'NR', '1AR', '2NR', '2AR'],
+				starterBoxes: ["Value", "Criterion"],
+				invert: false
+			},
+			{
+				name: 'neg',
+				columns: ['NC', '1AR', '2NR', '2AR'],
+				starterBoxes: ["Value", "Criterion"],
+				invert: true
+			},
+		],
+		altFlowSelectorSettingName: "LDSubstyle",
+		altFlows1: [
 			{
 				name: 'aff',
 				columns: ['AC', 'NR', '1AR', '2NR', '2AR'],
@@ -273,7 +303,7 @@ export const debateStyles: {
 		prepTime: 4 * 60 * 1000
 	},
 	congress: {
-		templates: [
+		flows: [
 			{
 				name: 'bill',
 				columns: ['1A', 'Q/1N', 'Q/2A', 'Q/2N', 'Q/3A', 'Q/3N', 'Q/4A', 'Q/4N', 'Q/5A', 'Q/5N'],
@@ -289,7 +319,7 @@ export const debateStyles: {
 		]
 	},
 	worldSchools: {
-		templates: [
+		flows: [
 			{
 				name: 'prop',
 				columns: ['P1', 'O1', 'P2', 'O2', 'PW', 'OW', 'OR', 'PR'],
@@ -345,7 +375,7 @@ export const debateStyles: {
 		]
 	},
 	bigQuestions: {
-		templates: [
+		flows: [
 			{
 			name: 'aff',
 			columns: ['AC', 'NC', 'ARb', 'NRb', 'A3', 'N3', 'ARt', 'NRt'],
@@ -412,7 +442,7 @@ export const debateStyles: {
 		prepTime: 3 * 60 * 1000
 	},
 	nofSpar: {
-		templates: [
+		flows: [
 			{
 				name: 'pro',
 				columns: ['PC', 'CC', 'PR', 'CR'],
@@ -458,7 +488,7 @@ export const debateStyles: {
 		]
 	},
 	parli: {
-		templates: [
+		flows: [
 			{
 				name: 'pro',
 				columns: ['1PC', '1OC', '2PC', '2OC/OR', 'PR'],
@@ -504,7 +534,7 @@ export const debateStyles: {
 		]
 	},
 	classic: {
-		templates: [
+		flows: [
 			{
 				name: 'aff',
 				columns: ['AC', 'NC/1NR', '1AR', '2NR', '2AR', 'NS', 'AS'],
