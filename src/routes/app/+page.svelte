@@ -26,7 +26,7 @@
 	import { focusId, lastFocusIds, selectedFlowId } from '$lib/models/focus';
 	import { isChangelogVersionCurrent } from '$lib/models/version';
 	import { addNewFlow, deleteFlow, moveFlow, replaceNodes } from '$lib/models/nodeDecorateAction';
-	import { currentDebateStyleFlow, type DebateStyleFlow } from '$lib/models/debateStyle';
+	import { getDebateStyleFlow, type DebateStyleFlow } from '$lib/models/debateStyle';
 
 	$: unsavedChanges = $nodes.root.children.length > 0;
 
@@ -126,21 +126,21 @@
 		control: {
 			n: {
 				handle: () => {
-					const style = currentDebateStyleFlow("primary");
+					const style = getDebateStyleFlow("primary");
 					if (style == null) return;
 					addFlow(style);
 				},
-				require: () => currentDebateStyleFlow("primary") != null
+				require: () => getDebateStyleFlow("primary") != null
 			}
 		},
 		'control shift': {
 			n: {
 				handle: () => {
-					const style = currentDebateStyleFlow("secondary");
+					const style = getDebateStyleFlow("secondary");
 					if (style == null) return;
 					addFlow(style);
 				},
-				require: () => currentDebateStyleFlow("secondary") != null
+				require: () => getDebateStyleFlow("secondary") != null
 			}
 		},
 		'commandControl shift': {

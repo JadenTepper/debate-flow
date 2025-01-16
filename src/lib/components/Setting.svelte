@@ -42,7 +42,9 @@
 	}
 </script>
 
-<div class="top" bind:this={element} style={`--spotlight:${$spotlight}`} in:settingIn={{skip: false}} out:settingOut={{skip: false}}>
+<div class="top" bind:this={element} in:settingIn={{skip: false}} out:settingOut={{skip: false}}>
+	<div class="spotlight" style={`--spotlight:${$spotlight}`}>
+	</div>
 	<span class="above">
 		<div class="titleReset">
 			<h2>{setting.name}</h2>
@@ -90,7 +92,16 @@
 		width: 100%;
 		box-sizing: border-box;
 	}
-
+	.spotlight {
+		background-color: var(--this-background-indent);
+		opacity: var(--spotlight);
+		border-radius: var(--border-radius);
+		position: absolute;
+		height: 100%;
+		width: 100%;
+		top: calc(-1 * var(--padding)/2);
+		left: calc(-1 * var(--padding)/2);
+	}
 	.above {
 		position: relative;
 		display: flex;

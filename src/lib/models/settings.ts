@@ -139,11 +139,14 @@ export const settings: Settings = new Settings({
 		},
 		info: "Already created flows won't be affected by this setting"
 	},
-	debateStyleAtVarsityLevel: {
-		name: 'Varsity styled flows',
-		value: false,
-		auto: false,
-		type: 'toggle',
+	LDSubstyle: {
+		name: 'Debate substyle',
+		value: 0,
+		auto: 0,
+		type: 'radio',
+		detail: {
+			options: ['Classical', 'East-Coast Varsity']
+		},
 		visibilityCondition: () => {
 			return settings.data.debateStyle.value == 2;
 		}
@@ -407,7 +410,7 @@ export const settingsGroups: SettingsGroup[] = [
 		name: 'General',
 		settings: [
 			'debateStyle',
-			'debateStyleAtVarsityLevel',
+			'LDSubstyle',
 			'colorTheme',
 			'columnWidth',
 			'transitionSpeed',
