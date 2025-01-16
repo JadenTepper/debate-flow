@@ -145,7 +145,7 @@ export const settings: Settings = new Settings({
 		auto: 0,
 		type: 'radio',
 		detail: {
-			options: ['Classical', 'East-Coast Varsity']
+			options: ['Classical', 'TOC Circuit']
 		},
 		visibilityCondition: () => {
 			return settings.data.debateStyle.value == 2;
