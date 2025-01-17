@@ -8,12 +8,6 @@
 	export let addFlow: (type: DebateStyleFlow) => void;
 	export let switchSpeakers: boolean;
 
-	onDestroy(
-		() => {
-			console.log("Gone!")
-		}
-	);
-
 	let primaryFlow: DebateStyleFlow | null;
 	let secondaryFlow: DebateStyleFlow | null;
 	let templates: DebateStyleFlow[];
