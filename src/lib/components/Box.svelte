@@ -33,7 +33,11 @@
 	export let id: BoxId | FlowId;
 	export let parentIsEmpty = false;
 
+	const EXTENSION_CONTENT = "⇨";
+
 	let consistentEnterBehaviour: boolean = settings.data['consistentEnterBehaviour']
+		.value as boolean;
+	let tabReturnsToParent: boolean = settings.data['tabReturnsToParent']
 		.value as boolean;
 
 	let node: Node<Box | Flow>;
@@ -49,6 +53,10 @@
 				box = null;
 			} else {
 				box = node.value;
+
+				if (box.extension && box.content !== EXTENSION_CONTENT) {
+					box.content = EXTENSION_CONTENT;
+				}
 				// update text height in case it changes, for example due to bold
 				updateTextHeight && updateTextHeight();
 			}
@@ -65,7 +73,7 @@
 
 	export let addSibling: (childIndex: number, direction: number) => boolean = () => false;
 	export let deleteSelf: (childIndex: number) => void = () => {};
-	export let focusSibling: (childIndex: number, direction: number) => void = () => {};
+	export let focusSibling: (childIndex: number, direction: number, defaultParent?: boolean) => void = () => {};
 	export let focusSiblingStrict: (childIndex: number, direction: number) => boolean = () => false;
 	export let focusParent: () => void = () => {};
 	export let dispatchSelfFocus: (childIndex: number, isFocused: boolean) => void = () => {};
@@ -134,11 +142,19 @@
 			},
 			b: {
 				handle: () => formatSelf('bold')
+			},
+			e: {
+				handle: () => {
+					if(!box?.extension && addExtentionChild())
+						focusGrandchildStrict(0, 0);
+				}
 			}
 		},
 		alt: {
 			Enter: {
 				handle: () => {
+					if (box?.extension)
+						return;
 					if (consistentEnterBehaviour) {
 						if (addSibling(index(), 0)) {
 							focusSibling(index(), 0);
@@ -159,8 +175,11 @@
 			Enter: {
 				handle: () => {
 					blurSelf();
-					if (addChild(0, 0)) {
-						focusChild(0, 0);
+					let childIndex = 0; // Add response to position 1 if an extension is in pos 0
+					if (node.children[0] && $nodes[node.children[0]]?.value.extension) 
+						childIndex = 1;
+					if (addChild(childIndex, 0)) {
+						focusChild(childIndex, 0);
 						history.setPrevAfterFocus($focusId);
 					}
 				}
@@ -196,8 +215,11 @@
 					deleteSelf(index());
 					history.setPrevAfterFocus($focusId);
 				},
-				// only delete if content is empty and there are no children
-				require: () => (content?.length ?? 1) == 0 && node.children.length == 0
+				// only delete if content is empty or is an extension and there are no children 
+				require: () => 
+						((content?.length ?? 1) == 0 
+						|| (box?.extension ?? false)) 
+					&& node.children.length == 0
 			},
 
 			ArrowUp: {
@@ -221,7 +243,7 @@
 			Tab: {
 				handle: () => {
 					blurSelf();
-					focusSibling(index(), 1);
+					focusSibling(index(), 1, tabReturnsToParent);
 				}
 			},
 			ArrowLeft: {
@@ -274,6 +296,24 @@
 			return false;
 		}
 	}
+
+	function addExtentionChild(): boolean {
+		// Dont add extension if there already is one
+		if (node.children.length >= 1 && $nodes[node.children[0]]?.value.extension) {
+			return false;
+		}
+		// if not at end of column
+		if (node.level < columnCount - 1) {
+			addNewBox(id, 0, '', true);
+			addNewBox(node.children[0], 0);
+			return true;
+		} else {
+			// stay focused
+			focusSelf();
+			return false;
+		}
+	}
+
 	async function deleteChild(childIndex: number) {
 		// if target isn't only child of first level
 		if (node.children.length > 1 || node.level >= 1) {
@@ -293,8 +333,12 @@
 
 			deleteBox(deleteId);
 			// node = node;
-			// focus on previous child of deleted
-			if (node.children[childIndex - 1]) {
+
+				// Focus on parent when deleting an extension
+			if (box?.extension) {
+				focusSelf();
+				// focus on previous child of deleted
+			} else if (node.children[childIndex - 1]) {
 				focusChild(childIndex - 1, 0);
 				// focus on parent when empty
 			} else if (node.children.length == 0) {
@@ -309,7 +353,7 @@
 			return false;
 		}
 	}
-	function focusChild(childIndex: number, direction: number) {
+	function focusChild(childIndex: number, direction: number, defaultSelf?: boolean) {
 		let newChildIndex = childIndex + direction;
 		// focus on parent when childIndex is before children
 		if (newChildIndex < 0) {
@@ -318,6 +362,11 @@
 		}
 		// if childIndex is beyond children
 		if (newChildIndex >= node.children.length) {
+			// If we rather focus self rather than a grandchild	
+			if (defaultSelf) {
+				focusSelf();
+				return;
+			}
 			// if has grandchild
 			let lastChild = $nodes[node.children[node.children.length - 1]];
 			if (lastChild == null) return;
@@ -334,7 +383,7 @@
 			let child = $nodes[node.children[newChildIndex]];
 			if (child == null) return;
 			if (child.value.empty && direction != 0) {
-				focusChild(newChildIndex, direction);
+				focusChild(newChildIndex, direction, defaultSelf);
 			} else {
 				// focus on child
 				$focusId = node.children[newChildIndex];
@@ -359,6 +408,22 @@
 			// node = node;
 			return true;
 		}
+	}
+
+	function focusGrandchildStrict(childIndex: number, grandchildIndex: number): boolean {
+		if (childIndex < 0 || childIndex >= node.children.length) {
+			return false;
+		}
+		// if is empty, skip
+		let child = $nodes[node.children[childIndex]];
+		if (!child) return false;
+		
+		if (grandchildIndex < 0 || grandchildIndex >= child.children.length) {
+			return false;
+		}
+
+		$focusId = child.children[childIndex];
+		return true;
 	}
 
 	function focusAdjacent(direction: 'up' | 'down'): boolean {
@@ -393,13 +458,24 @@
 	let palette: string;
 	let outsidePalette: string;
 	$: {
-		if ((node.level % 2 == 0 && !invert) || (node.level % 2 == 1 && invert)) {
-			palette = 'accent-secondary';
-			outsidePalette = 'accent';
+		if (box && box.extension) { // Extensions should have the reverse color
+			if ((node.level % 2 == 1 && !invert) || (node.level % 2 == 0 && invert)) {
+				palette = 'accent-secondary';
+				outsidePalette = 'accent';
+			} else {
+				palette = 'accent';
+				outsidePalette = 'accent-secondary';
+			}
 		} else {
-			palette = 'accent';
-			outsidePalette = 'accent-secondary';
+			if ((node.level % 2 == 0 && !invert) || (node.level % 2 == 1 && invert)) {
+				palette = 'accent-secondary';
+				outsidePalette = 'accent';
+			} else {
+				palette = 'accent';
+				outsidePalette = 'accent-secondary';
+			}
 		}
+		
 	}
 	function preventBlur(e: Event) {
 		e.preventDefault();
@@ -490,6 +566,9 @@
 					in:brIn
 					out:brOut
 					on:click={() => {
+						if (box?.extension) { // ignore if this is an extension box
+							return;
+						}
 						let couldAdd = addSibling(index(), 0);
 						if (couldAdd) {
 							focusSibling(index(), 0);
@@ -511,6 +590,8 @@
 							on:beforeinput={handleBeforeInput}
 							bind:autoHeight={updateTextHeight}
 							placeholder={box.placeholder ?? (node.level == 1 && index() == 0 ? 'type here' : '')}
+							readonly={box?.extension ?? false}
+							centered={box?.extension ?? false}
 						/>
 					{/if}
 				</div>

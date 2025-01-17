@@ -91,6 +91,29 @@
 		let newBoxIndex = targetIndex + direction;
 		addNewBox(target.parent, newBoxIndex);
 	}
+
+	function extendArgument() {
+		if (targetId == null) return;
+		if ($selectedFlowId == null) return;
+		let target = $nodes[targetId];
+		if (target == null) return;
+		let currentFlow = $nodes[$selectedFlowId];
+		if (currentFlow == null) return;
+
+		// Dont add extension if there already is one
+		if (target.children.length >= 1 && $nodes[target.children[0]]?.value.extension) {
+			return;
+		}
+		// if not at end of column
+		if (target.level < currentFlow.value.columns.length - 1) {
+			addNewBox(targetId, 0, '', true);
+			addNewBox(target.children[0], 0);
+			const grandchildId = $nodes[target.children[0] as BoxId]?.children[0];
+			$focusId = grandchildId ? grandchildId as BoxId : targetId;
+			return;
+		}
+	}
+
 	function toggleFormat(format: Parameters<typeof toggleBoxFormat>[1]) {
 		if (targetId == null) return;
 		toggleBoxFormat(targetId, format);
@@ -145,10 +168,11 @@
 				{
 					icon: 'addUp',
 					onclick: () => addSibling(0),
-					disabled: targetId == null,
+					disabled: targetId == null || targetBox()?.value.extension,
 					tooltip: 'add argument above',
 					shortcut: ['option', 'return'],
-					disabledReason
+					disabledReason:
+						targetBox()?.value.extension ? "can't add responses above extensions" : disabledReason
 				},
 				{
 					icon: 'addDown',
@@ -165,6 +189,23 @@
 					tooltip: 'delete selected',
 					shortcut: ['commandControl', 'delete'],
 					disabledReason
+				}
+			],
+			showQuickExtensionButtons: [
+				{
+					icon: 'eye',
+					onclick: extendArgument,
+					disabled: targetId == null 
+						|| (targetBox()?.children[0] 
+							&& $nodes[targetBox()?.children[0] as BoxId]?.value.extension)
+					 	|| targetBox()?.value.extension,
+					tooltip: 'extend selected',
+					shortcut: ['commandControl', 'e'],
+					disabledReason: 
+						(targetBox()?.children[0] && 
+						$nodes[targetBox()?.children[0] as BoxId]?.value.extension) ? "can't extend an extended argument" 
+						: targetBox()?.value.extension ? "can't extend an extension"
+						: disabledReason
 				}
 			],
 			showBoxFormatButtons: [

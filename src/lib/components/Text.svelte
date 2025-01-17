@@ -6,6 +6,8 @@
 	export let placeholder: string = '';
 	export let nowrap: boolean = false;
 	export let strikethrough: boolean = false;
+	export let readonly: boolean = false;
+	export let centered: boolean = false;
 	let whiteSpaceCss: string;
 	$: {
 		if (nowrap) {
@@ -47,6 +49,8 @@
 	{placeholder}
 	style={`--white-space:${whiteSpaceCss};`}
 	class:strikethrough
+	class:centered={centered}
+	readonly={readonly}
 />
 
 <style>
@@ -87,5 +91,8 @@
 	}
 	textarea::selection {
 		background: var(--this-text-select);
+	}
+	textarea.centered {
+		text-align: center;
 	}
 </style>
