@@ -75,13 +75,6 @@
 					icon="add"
 					on:click={() => addFlow(flow)}
 					tooltip={`create new ${flow.name} flow`}
-					shortcut={
-						index === 0 
-							? ['control', 'n'] 
-							: index === 1 
-								? ['control', 'shift', 'n'] 
-								: null
-					}
 				/>
 			{/if}
 		{/each}
