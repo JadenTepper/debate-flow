@@ -131,27 +131,4 @@
 		overflow-y: auto;
 		box-sizing: border-box;
 	}
-
-	/* Firefox-specific styles */
-	@supports (-moz-appearance: none) {
-		.content {
-			scrollbar-width: thin;
-			scrollbar-color: rgb(128, 128, 128) var(--background-back);
-		}
-	}
-
-	/* WebKit-specific styles (Chrome, Safari, Edge) */
-	.content::-webkit-scrollbar {
-		width: 6px; 
-	}
-
-	.content::-webkit-scrollbar-thumb {
-		background: rgb(128, 128, 128); 
-		border: 2px solid var(--background-back); /* Creates a thinner thumb */
-	}
-
-	.content::-webkit-scrollbar-track {
-		background: var(--background-back); 
-	}
-
 </style>
