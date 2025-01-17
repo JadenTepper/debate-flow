@@ -39,8 +39,6 @@
 		.value as boolean;
 	let tabReturnsToParent: boolean = settings.data['tabReturnsToParent']
 		.value as boolean;
-	let backslashExtendsArgument: boolean = settings.data['backslashExtendsArgument']
-		.value as boolean;
 
 	let node: Node<Box | Flow>;
 	let box: Box | null;
@@ -229,13 +227,6 @@
 						|| (box?.extension ?? false)) 
 					&& node.children.length == 0
 			},
-			Backslash: {
-				handle: () => {
-					if(!box?.extension && addExtentionChild())
-						focusGrandchildStrict(0, 0);
-				},
-				require: () => backslashExtendsArgument
-			},
 			ArrowUp: {
 				handle: () => {
 					blurSelf();
@@ -345,11 +336,13 @@
 			}
 			await tick();
 
+			const childIsExtension = $nodes[deleteId]? $nodes[deleteId].value.extension : false;
+
 			deleteBox(deleteId);
 			// node = node;
 
 				// Focus on parent when deleting an extension
-			if (box?.extension) {
+			if (childIsExtension) {
 				focusSelf();
 				// focus on previous child of deleted
 			} else if (node.children[childIndex - 1]) {
