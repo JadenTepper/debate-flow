@@ -353,6 +353,25 @@ export const settings: Settings = new Settings({
 			step: 1
 		}
 	},
+	customScrollbar: {
+		name: 'Custom scrollbars',
+		type: 'toggle',
+		value: false,
+		auto: false,
+		info: 'Reload for these changes to take effect'
+	},
+	customScrollbarWidth: {
+		name: 'Custom scrollbar width',
+		value: 6,
+		auto: 6,
+		type: 'slider',
+		detail: {
+			min: 1,
+			max: 26,
+			step: 1
+		},
+		info: 'Does not work on Firefox'
+	},
 	consistentEnterBehaviour: {
 		name: 'Pressing enter always creates new cell',
 		value: false,
@@ -408,6 +427,10 @@ export const settingsGroups: SettingsGroup[] = [
 	{
 		name: 'Toolbar',
 		settings: ['showUndoRedoButtons', 'showBoxCreationButtons', 'showQuickExtensionButtons', 'showBoxFormatButtons']
+	},
+	{
+		name: 'Scrollbars',
+		settings: ['customScrollbar', 'customScrollbarWidth']
 	},
 	{ name: 'Controls', settings: ['consistentEnterBehaviour', 'tabReturnsToParent'] }
 ];

@@ -7,6 +7,7 @@
 	import { focusId } from '$lib/models/focus';
 	import { nodes } from '$lib/models/store';
 	import { addNewEmpty } from '$lib/models/nodeDecorateAction';
+	import { settings } from '$lib/models/settings';
 
 	export let flowId: FlowId;
 	let node: Node<Flow>;
@@ -29,11 +30,18 @@
 		let id = addNewEmpty(flowId, column);
 		$focusId = id;
 	}
+
+	function fixScroll(event: Event) {
+		const el = event.currentTarget as HTMLDivElement;
+		if (el.scrollLeft !== 0) {
+			el.scrollLeft = 0;
+		}
+	}
 </script>
 
 <div class="top" class:invert={flow.invert} style={`--column-count: ${flow.columns.length};`}>
 	<div class="viewer">
-		<div class="content">
+		<div class="content" class:customScrollbar={settings.data.customScrollbar.value} on:scroll={fixScroll}>
 			<Box id={flowId} />
 		</div>
 		<div class="headers">
