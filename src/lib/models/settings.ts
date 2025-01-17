@@ -385,6 +385,13 @@ export const settings: Settings = new Settings({
 		auto: false,
 		type: 'toggle',
 		info: 'Reload for these changes to take effect'
+	},
+	backslashExtendsArgument: {
+		name: 'Pressing backslash quick extends an argument',
+		value: false,
+		auto: false,
+		type: 'toggle',
+		info: 'Reload for these changes to take effect'
 	}
 });
 
@@ -432,5 +439,5 @@ export const settingsGroups: SettingsGroup[] = [
 		name: 'Scrollbars',
 		settings: ['customScrollbar', 'customScrollbarWidth']
 	},
-	{ name: 'Controls', settings: ['consistentEnterBehaviour', 'tabReturnsToParent'] }
+	{ name: 'Controls', settings: ['consistentEnterBehaviour', 'tabReturnsToParent', 'backslashExtendsArgument'] }
 ];

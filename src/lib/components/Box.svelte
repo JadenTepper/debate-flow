@@ -39,6 +39,8 @@
 		.value as boolean;
 	let tabReturnsToParent: boolean = settings.data['tabReturnsToParent']
 		.value as boolean;
+	let backslashExtendsArgument: boolean = settings.data['backslashExtendsArgument']
+		.value as boolean;
 
 	let node: Node<Box | Flow>;
 	let box: Box | null;
@@ -227,7 +229,13 @@
 						|| (box?.extension ?? false)) 
 					&& node.children.length == 0
 			},
-
+			Backslash: {
+				handle: () => {
+					if(!box?.extension && addExtentionChild())
+						focusGrandchildStrict(0, 0);
+				},
+				require: () => backslashExtendsArgument
+			},
 			ArrowUp: {
 				handle: () => {
 					blurSelf();
