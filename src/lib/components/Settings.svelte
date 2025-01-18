@@ -4,7 +4,7 @@
 	import ButtonBar from './ButtonBar.svelte';
 	import { settingsGroups, settings } from '$lib/models/settings';
 	import { onDestroy } from 'svelte';
-	import { settingScrollerIn, settingScrollerOut } from '$lib/models/transition';
+	import { settingScrollerIn, settingScrollerOut, settingTitleInOut } from '$lib/models/transition';
 
 	export const closePopup: () => void = () => {};
 	onDestroy(() => {
@@ -49,7 +49,7 @@
 			<ul>
 				{#each settingsGroups as group, groupIndex}
 					{#if groupVisibilities[groupIndex]}
-						<li class="title">
+						<li class="title" in:settingTitleInOut={{skip:false}} out:settingTitleInOut={{skip:false}}>
 							<button
 								on:click={(e) => {
 									scrollToGroupHeader(groupIndex);
@@ -58,17 +58,17 @@
 								{group.name}
 							</button>
 						</li>
-						{#each group.settings as key, index}
-							{#if settingVisibilities[groupIndex][index]}
-								<li in:settingScrollerIn={{skip:false}} out:settingScrollerOut={{skip:false}}>
-									<button on:click={() => scrollToSettingElement(groupIndex, index)}>
-										{settings.data[key].name}
-									</button>
-								</li>
-							{/if}
-						{/each}
 					{/if}
-				{/each}
+					{#each group.settings as key, index}
+						{#if settingVisibilities[groupIndex][index]}
+							<li in:settingScrollerIn={{skip:false}} out:settingScrollerOut={{skip:false}}>
+								<button on:click={() => scrollToSettingElement(groupIndex, index)}>
+									{settings.data[key].name}
+								</button>
+							</li>
+						{/if}
+					{/each}
+			{/each}
 			</ul>
 		</div>
 	</div>
@@ -93,21 +93,21 @@
 				{/each} -->
 				{#each settingsGroups as group, groupIndex}
 					{#if groupVisibilities[groupIndex]}
-						<li class="title" bind:this={groupHeaderElements[groupIndex]}>
+						<li class="title" bind:this={groupHeaderElements[groupIndex]} in:settingTitleInOut={{skip:false}} out:settingTitleInOut={{skip:false}}>
 							<h1>
 								{group.name}
 							</h1>
 						</li>
-						{#each group.settings as key, index}
-							{#if settingVisibilities[groupIndex][index]}
-								<Setting
-									{key}
-									setting={settings.data[key]}
-									bind:this={settingComponents[groupIndex][index]}
-								/>
-							{/if}
-						{/each}
 					{/if}
+					{#each group.settings as key, index}
+						{#if settingVisibilities[groupIndex][index]}
+							<Setting
+								{key}
+								setting={settings.data[key]}
+								bind:this={settingComponents[groupIndex][index]}
+							/>
+						{/if}
+					{/each}
 				{/each}
 			</ul>
 		</section>
