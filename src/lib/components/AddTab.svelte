@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from './Button.svelte';
 	import TutorialHighlight from './TutorialHighlight.svelte';
-	import { debateStyleMap, getDebateStyleFlow, debateStyles, type DebateStyleFlow, getAllDebateStyleFlows } from '$lib/models/debateStyle';
+	import { getDebateStyleFlow, getAllDebateStyleFlows, type DebateStyleFlow} from '$lib/models/debateStyle';
 	import { settings } from '$lib/models/settings';
 	import { onDestroy } from 'svelte';
 
