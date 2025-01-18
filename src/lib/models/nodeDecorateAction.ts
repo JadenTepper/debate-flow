@@ -49,7 +49,7 @@ export function newBoxAction(
 	parentFlowId: FlowId,
 	index: number,
 	placeholder?: string,
-	extension?: boolean
+	isExtension?: boolean
 ): AddAction<Box> {
 	const addAction: AddAction<Box> = {
 		tag: 'add',
@@ -61,7 +61,7 @@ export function newBoxAction(
 			content: '',
 			placeholder: placeholder,
 			flowId: parentFlowId,
-			extension: extension
+			isExtension: isExtension
 		}
 	};
 
@@ -73,11 +73,11 @@ export const addNewBox = decorate(function (
 	parent: FlowId | BoxId,
 	index: number,
 	placeholder?: string,
-	extension?: boolean
+	isExtension?: boolean
 ) {
 	const flowId = getParentFlowId(nodes, parent).unwrap();
 	return {
-		action: newBoxAction(parent, flowId, index, placeholder, extension),
+		action: newBoxAction(parent, flowId, index, placeholder, isExtension),
 		owner: flowId
 	};
 });

@@ -54,7 +54,7 @@
 			} else {
 				box = node.value;
 
-				if (box.extension && box.content !== EXTENSION_CONTENT) {
+				if (box.isExtension && box.content !== EXTENSION_CONTENT) {
 					box.content = EXTENSION_CONTENT;
 				}
 
@@ -75,7 +75,7 @@
 
 	export let addSibling: (childIndex: number, direction: number) => boolean = () => false;
 	export let deleteSelf: (childIndex: number) => void = () => {};
-	export let focusSibling: (childIndex: number, direction: number, defaultParent?: boolean) => void = () => {};
+	export let focusSibling: (childIndex: number, direction: number, defaultToParent?: boolean) => void = () => {};
 	export let focusSiblingStrict: (childIndex: number, direction: number) => boolean = () => false;
 	export let focusParent: () => void = () => {};
 	export let dispatchSelfFocus: (childIndex: number, isFocused: boolean) => void = () => {};
@@ -151,7 +151,7 @@
 			},
 			e: {
 				handle: () => {
-					if(!box?.extension && addExtentionChild())
+					if(!box?.isExtension && addExtentionChild())
 						focusGrandchildStrict(0, 0);
 				}
 			}
@@ -159,7 +159,7 @@
 		alt: {
 			Enter: {
 				handle: () => {
-					if (box?.extension)
+					if (box?.isExtension)
 						return;
 					if (consistentEnterBehaviour) {
 						if (addSibling(index(), 0)) {
@@ -182,7 +182,7 @@
 				handle: () => {
 					blurSelf();
 					let childIndex = 0; // Add response to position 1 if an extension is in pos 0
-					if (node.children[0] && $nodes[node.children[0]]?.value.extension) 
+					if (node.children[0] && $nodes[node.children[0]]?.value.isExtension) 
 						childIndex = 1;
 					if (addChild(childIndex, 0)) {
 						focusChild(childIndex, 0);
@@ -224,7 +224,7 @@
 				// only delete if content is empty or is an extension and there are no children 
 				require: () => 
 						((content?.length ?? 1) == 0 
-						|| (box?.extension ?? false)) 
+						|| (box?.isExtension ?? false)) 
 					&& node.children.length == 0
 			},
 			ArrowUp: {
@@ -304,7 +304,7 @@
 
 	function addExtentionChild(): boolean {
 		// Dont add extension if there already is one
-		if (node.children.length >= 1 && $nodes[node.children[0]]?.value.extension) {
+		if (node.children.length >= 1 && $nodes[node.children[0]]?.value.isExtension) {
 			return false;
 		}
 		// if not at end of column
@@ -336,7 +336,7 @@
 			}
 			await tick();
 
-			const childIsExtension = $nodes[deleteId]? $nodes[deleteId].value.extension : false;
+			const childIsExtension = $nodes[deleteId]? $nodes[deleteId].value.isExtension : false;
 
 			deleteBox(deleteId);
 			// node = node;
@@ -360,7 +360,7 @@
 			return false;
 		}
 	}
-	function focusChild(childIndex: number, direction: number, defaultSelf?: boolean) {
+	function focusChild(childIndex: number, direction: number, defaultToSelf?: boolean) {
 		let newChildIndex = childIndex + direction;
 		// focus on parent when childIndex is before children
 		if (newChildIndex < 0) {
@@ -370,7 +370,7 @@
 		// if childIndex is beyond children
 		if (newChildIndex >= node.children.length) {
 			// If we rather focus self rather than a grandchild	
-			if (defaultSelf) {
+			if (defaultToSelf) {
 				focusSelf();
 				return;
 			}
@@ -390,7 +390,7 @@
 			let child = $nodes[node.children[newChildIndex]];
 			if (child == null) return;
 			if (child.value.empty && direction != 0) {
-				focusChild(newChildIndex, direction, defaultSelf);
+				focusChild(newChildIndex, direction, defaultToSelf);
 			} else {
 				// focus on child
 				$focusId = node.children[newChildIndex];
@@ -465,7 +465,7 @@
 	let palette: string;
 	let outsidePalette: string;
 	$: {
-		if (box && box.extension) { // Extensions should have the reverse color
+		if (box && box.isExtension) { // Extensions should have the reverse color
 			if ((node.level % 2 == 1 && !invert) || (node.level % 2 == 0 && invert)) {
 				palette = 'accent-secondary';
 				outsidePalette = 'accent';
@@ -573,7 +573,7 @@
 					in:brIn
 					out:brOut
 					on:click={() => {
-						if (box?.extension) { // ignore if this is an extension box
+						if (box?.isExtension) { // ignore if this is an extension box
 							return;
 						}
 						let couldAdd = addSibling(index(), 0);
@@ -598,8 +598,8 @@
 							on:beforeinput={handleBeforeInput}
 							bind:autoHeight={updateTextHeight}
 							placeholder={box.placeholder ?? (node.level == 1 && index() == 0 ? 'type here' : '')}
-							readonly={box?.extension ?? false}
-							centered={box?.extension ?? false}
+							readonly={box?.isExtension ?? false}
+							centered={box?.isExtension ?? false}
 						/>
 					{/if}
 				</div>
