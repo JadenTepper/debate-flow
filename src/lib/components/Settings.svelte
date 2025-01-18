@@ -25,12 +25,6 @@
 	let groupVisibilities: boolean[];
 	let settingVisibilities: boolean[][];
 	function updateVisibilities() {
-		groupVisibilities = settingsGroups.map((group, _groupIndex) => {
-			return group.settings.some((key) => {
-				const cond = settings.data[key].visibilityCondition;
-				return !cond || cond();
-			});
-		});
 		settingVisibilities = settingsGroups.map((group, _groupIndex) => {
 			return group.settings.map((key, _index) => {
 				if (!settings.data[key].visibilityCondition || settings.data[key].visibilityCondition && settings.data[key].visibilityCondition()) {
@@ -38,6 +32,9 @@
 				}
 				return false;
 			});
+		});
+		groupVisibilities = settingVisibilities.map((group, _groupIndex) => {
+			return group.some(vis => vis);
 		});
 	}
 	updateVisibilities();
