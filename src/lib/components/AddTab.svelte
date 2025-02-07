@@ -38,7 +38,7 @@
 		return result;
 	}
 
-  	$: flippedTemplates = flipPairs(templates);
+		$: flippedTemplates = flipPairs(templates);
 
 	$: currentStyleTemplates = (hasSwitch && switchSpeakers)
     ? flippedTemplates

@@ -710,7 +710,7 @@ export const settingsGroups: SettingsGroup[] = [
 	},
 	{
 		name: 'Background Colors',
-		settings: [ 
+		settings: [
 			'customBackgroundBack', 'customBackground', 'customBackgroundIndent', 'customBackgroundActive',
 			'customBackgroundAccentIndent', 'customBackgroundAccentActive'
 		]
