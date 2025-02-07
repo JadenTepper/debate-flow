@@ -26,7 +26,11 @@ type SliderSetting = SettingBasic<number> & {
 		hue?: boolean;
 	};
 };
-export type Setting = ToggleSetting | RadioSetting | SliderSetting;
+export type Hexcode = `#${string}`;
+type ColorSetting = SettingBasic<Hexcode> & {
+	type: 'color';
+}
+export type Setting = ToggleSetting | RadioSetting | SliderSetting | ColorSetting;
 class Settings {
 	data: { [key: string]: Setting };
 	callbacks: { [key: string]: ((key: string) => void)[] } = { any: [] };
@@ -36,7 +40,7 @@ class Settings {
 	init() {
 		this.loadFromLocalStorage();
 	}
-	setValue(key: string, value: boolean | number): void {
+	setValue(key: string, value: boolean | number | Hexcode): void {
 		this.data[key].value = value;
 		if (this.callbacks[key]) {
 			for (const callback of this.callbacks[key]) {
@@ -61,10 +65,10 @@ class Settings {
 			}
 		};
 	}
-	saveToLocalStorage() {
+	convertSettingsToJson(includeDefaults?: boolean): string {
 		const jsonData: { [key: string]: number | boolean | string } = {};
 		for (const key of Object.keys(this.data)) {
-			if (this.data[key].value != this.data[key].auto) {
+			if (this.data[key].value != this.data[key].auto || includeDefaults) {
 				jsonData[key] = this.data[key].value;
 				if (this.data[key].type == 'radio') {
 					const setting = this.data[key] as RadioSetting;
@@ -74,27 +78,34 @@ class Settings {
 				}
 			}
 		}
-		localStorage.setItem('settings', JSON.stringify(jsonData));
+		return JSON.stringify(jsonData);
+	}
+	parseJsonToSettings(jsonString: string) {
+		let jsonData = JSON.parse(jsonString);
+		try {
+			for (const key in jsonData) {
+				if (this.data[key] == null) return;
+				if (this.data[key].type == 'radio') {
+					const setting = this.data[key] as RadioSetting;
+					if (jsonData[key + 'Custom']) {
+						setting.detail.customOptionValue = jsonData[key + 'Custom'];
+					}
+				}
+				this.setValue(key, jsonData[key]);
+			}
+		} catch (e) {
+			localStorage.setItem('settings', JSON.stringify({}));
+			this.resetToAuto();
+		}
+	}
+	saveToLocalStorage() {
+		const jsonData = this.convertSettingsToJson();
+		localStorage.setItem('settings', jsonData);
 	}
 	loadFromLocalStorage() {
 		const settingsObj = localStorage.getItem('settings');
 		if (settingsObj) {
-			const jsonData = JSON.parse(settingsObj);
-			try {
-				for (const key in jsonData) {
-					if (this.data[key] == null) return;
-					if (this.data[key].type == 'radio') {
-						const setting = this.data[key] as RadioSetting;
-						if (jsonData[key + 'Custom']) {
-							setting.detail.customOptionValue = jsonData[key + 'Custom'];
-						}
-					}
-					this.setValue(key, jsonData[key]);
-				}
-			} catch (e) {
-				localStorage.setItem('settings', JSON.stringify({}));
-				this.resetToAuto();
-			}
+			this.parseJsonToSettings(settingsObj);
 		}
 	}
 	resetToAuto() {
@@ -114,6 +125,11 @@ class Settings {
 				this.setValue(key, Math.floor(Math.random() * setting.detail.options.length));
 			} else if (setting.type == 'toggle') {
 				this.setValue(key, Math.random() < 0.5);
+			} else if (setting.type == 'color') {
+				const r = Math.floor(Math.random() * 256).toString(16);
+				const g = Math.floor(Math.random() * 256).toString(16);
+				const b = Math.floor(Math.random() * 256).toString(16);
+				this.setValue(key, ("#" + r + g + b) as Hexcode);
 			}
 		}
 	}
@@ -157,8 +173,272 @@ export const settings: Settings = new Settings({
 		value: 0,
 		auto: 0,
 		detail: {
-			options: ['System default', 'Light theme', 'Dark theme']
+			options: ['System default', 'Light theme', 'Dark theme', 'Custom theme']
 		}
+	},
+	customBackgroundBack: {
+		name: 'Back background',
+		type: 'color',
+		value: "#01020e",
+		auto: "#01020e",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customBackground: {
+		name: 'Background',
+		type: 'color',
+		value: "#010318",
+		auto: "#010318",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customBackgroundIndent: {
+		name: 'Highlighted background',
+		type: 'color',
+		value: "#020531",
+		auto: "#020531",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customBackgroundActive: {
+		name: 'Clicked background',
+		type: 'color',
+		value: "#050848",
+		auto: "#050848",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customBackgroundSecondary: {
+		name: 'Background',
+		type: 'color',
+		value: "#020527",
+		auto: "#020527",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customBackgroundSecondaryIndent: {
+		name: 'Highlighted background',
+		type: 'color',
+		value: "#050748",
+		auto: "#050748",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customBackgroundSecondaryActive: {
+		name: 'Clicked background',
+		type: 'color',
+		value: "#080c6d",
+		auto: "#080c6d",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customBackgroundAccentIndent: {
+		name: 'Accent',
+		type: 'color',
+		value: "#030531",
+		auto: "#030531",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customBackgroundAccentActive: {
+		name: 'Clicked accent',
+		type: 'color',
+		value: "#050848",
+		auto: "#050848",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customBackgroundAccentSecondaryIndent: {
+		name: 'Accent',
+		type: 'color',
+		value: "#050748",
+		auto: "#050748",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customBackgroundAccentSecondaryActive: {
+		name: 'Clicked accent',
+		type: 'color',
+		value: "#080c6d",
+		auto: "#080c6d",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customText: {
+		name: 'Text',
+		type: 'color',
+		value: "#ffffff",
+		auto: "#ffffff",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customTextSelect: {
+		name: 'Selection',
+		type: 'color',
+		value: "#917aff",
+		auto: "#917aff",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customTextWeak: {
+		name: 'Weak text',
+		type: 'color',
+		value: "#ffffff",
+		auto: "#ffffff",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customTextAccent: {
+		name: 'Aff text',
+		type: 'color',
+		value: "#adc7f0",
+		auto: "#adc7f0",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customTextAccentSelect: {
+		name: 'Aff selection',
+		type: 'color',
+		value: "#917aff",
+		auto: "#917aff",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customTextAccentWeak: {
+		name: 'Aff weak text',
+		type: 'color',
+		value: "#917aff",
+		auto: "#917aff",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customTextAccentSecondary: {
+		name: 'Neg text',
+		type: 'color',
+		value: "#e9d6ff",
+		auto: "#e9d6ff",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customTextAccentSecondarySelect: {
+		name: 'Neg selection',
+		type: 'color',
+		value: "#ffffff",
+		auto: "#ffffff",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customTextAccentSecondaryWeak: {
+		name: 'Weak neg text',
+		type: 'color',
+		value: "#ffffff",
+		auto: "#ffffff",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customColor: {
+		name: 'Selected lines',
+		type: 'color',
+		value: "#3e46ac",
+		auto: "#3e46ac",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customColorFade: {
+		name: 'Unselected Lines',
+		type: 'color',
+		value: "#150354",
+		auto: "#150354",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customColorAccent: {
+		name: 'Aff selected lines',
+		type: 'color',
+		value: "#3f46ac",
+		auto: "#3f46ac",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customColorAccentFade: {
+		name: 'Aff highlighted lines',
+		type: 'color',
+		value: "#180363",
+		auto: "#180363",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customColorAccentSecondary: {
+		name: 'Neg selected lines',
+		type: 'color',
+		value: "#3f46ac",
+		auto: "#3f46ac",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customColorAccentSecondaryFade: {
+		name: 'Neg highlighted lines',
+		type: 'color',
+		value: "#1e047c",
+		auto: "#1e047c",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		}
+	},
+	customScrollbarThumb: {
+		name: 'Scrollbar thumb',
+		type: 'color',
+		value: "#0a093e",
+		auto: "#0a093e",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		},
+		info: 'Only works with custom scrollbars enabled'
+	},
+	customScrollbarThumbHover: {
+		name: 'Hovered scrollbar thumb',
+		type: 'color',
+		value: "#101350",
+		auto: "#101350",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		},
+		info: 'Only works with custom scrollbars enabled'
+	},
+	customScrollbarBackground: {
+		name: 'Scrollbar background',
+		type: 'color',
+		value: "#04031c",
+		auto: "#04031c",
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value == 3;
+		},
+		info: 'Only works with custom scrollbars enabled'
 	},
 	columnWidth: {
 		name: 'Column width',
@@ -182,7 +462,10 @@ export const settings: Settings = new Settings({
 			step: 1,
 			hue: true
 		},
-		info: 'This color will be used for aff'
+		info: 'This color will be used for aff',
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value != 3;
+		}
 	},
 	accentSecondaryHue: {
 		name: 'Secondary color hue',
@@ -195,7 +478,10 @@ export const settings: Settings = new Settings({
 			step: 1,
 			hue: true
 		},
-		info: 'This color will be used for neg'
+		info: 'This color will be used for neg',
+		visibilityCondition: () => {
+			return settings.data.colorTheme.value != 3;
+		}
 	},
 	transitionSpeed: {
 		name: 'Transition duration',
@@ -421,6 +707,35 @@ export const settingsGroups: SettingsGroup[] = [
 	{
 		name: 'Colors',
 		settings: ['colorTheme', 'accentHue', 'accentSecondaryHue']
+	},
+	{
+		name: 'Background Colors',
+		settings: [ 
+			'customBackgroundBack', 'customBackground', 'customBackgroundIndent', 'customBackgroundActive',
+			'customBackgroundAccentIndent', 'customBackgroundAccentActive'
+		]
+	},
+	{
+		name: 'Neg Background Colors',
+		settings: ['customBackgroundSecondary', 'customBackgroundSecondaryIndent', 'customBackgroundSecondaryActive',
+			'customBackgroundAccentSecondaryIndent', 'customBackgroundAccentSecondaryActive'
+		]
+	},
+	{
+		name: 'Text Colors',
+		settings: ['customText', 'customTextSelect', 'customTextWeak', 'customTextAccent', 'customTextAccentSelect', 
+			'customTextAccentWeak', 'customTextAccentSecondary', 'customTextAccentSecondarySelect', 'customTextAccentSecondaryWeak',
+		]
+	},
+	{
+		name: 'Line Colors',
+		settings: ['customColor', 'customColorFade', 'customColorAccent', 'customColorAccentFade',
+			'customColorAccentSecondary', 'customColorAccentSecondaryFade'
+		]
+	},
+	{
+		name: 'Scrollbar Colors',
+		settings: ['customScrollbarThumb', 'customScrollbarThumbHover', 'customScrollbarBackground']
 	},
 	{
 		name: 'Font',

@@ -5,6 +5,7 @@
 	import { settingsGroups, settings } from '$lib/models/settings';
 	import { onDestroy } from 'svelte';
 	import { settingScrollerIn, settingScrollerOut, settingTitleInOut } from '$lib/models/transition';
+	import { downloadSettingsJson } from '$lib/models/file';
 
 	export const closePopup: () => void = () => {};
 	onDestroy(() => {
@@ -27,6 +28,10 @@
 	function updateVisibilities() {
 		settingVisibilities = settingsGroups.map((group, _groupIndex) => {
 			return group.settings.map((key, _index) => {
+				if (!settings.data[key]) {
+					console.log(`Key: ${key} does not exist in settings.`)
+					return false;
+				}
 				if (!settings.data[key].visibilityCondition || settings.data[key].visibilityCondition && settings.data[key].visibilityCondition()) {
 					return true;
 				}
@@ -41,6 +46,11 @@
 	onDestroy(settings.subscribe(["any"], () => {
 		updateVisibilities();
 	}));
+
+	function openUploadDialog() {
+		(document.getElementById('uploadId') as HTMLElement).click();
+		closePopup();
+	}
 </script>
 
 <div class="top palette-plain">
@@ -84,6 +94,20 @@
 				text="randomize settings"
 				tooltip="why would you click this"
 				on:click={() => settings.randomize()}
+			/>
+		</section>
+		<section class="controls">
+			<Button
+				icon="dots"
+				text="import settings"
+				tooltip="import settings from file"
+				on:click={() => openUploadDialog()}
+			/>
+			<Button
+				icon="dots"
+				text="export settings"
+				tooltip="export settings to file"
+				on:click={() => downloadSettingsJson()}
 			/>
 		</section>
 		<section class="settings">

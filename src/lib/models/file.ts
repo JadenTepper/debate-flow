@@ -3,6 +3,7 @@ import { type BoxId, type FlowId, type Nodes, newFlowId, newBoxId, getNode } fro
 import type { OldBox, OldFlows } from './oldType';
 import { newNodes } from './store';
 import { applyActionBundle } from './nodeAction';
+import { settings } from './settings';
 
 const CURRENT_SAVE_VERSION: Version = 1 as const;
 
@@ -39,6 +40,27 @@ export function loadNodes(data: string): Nodes {
 export function downloadJson(nodes: Nodes) {
 	const data: string = getJson(nodes);
 	downloadString(data, 'flow.json');
+}
+
+export function downloadSettingsJson() {
+	let data = settings.convertSettingsToJson(true);
+	data = "!SETTINGSFILE!" + data; // for upload tracking
+	downloadString(data, 'settings.json');
+}
+
+export function tryImportSettingsJson(jsonObject: string): boolean {
+	let header = jsonObject.indexOf("!SETTINGSFILE!");
+	if (header === -1) {
+		return false;
+	}
+	jsonObject = jsonObject.replace("!SETTINGSFILE!", ""); 
+	try {
+		settings.parseJsonToSettings(jsonObject);
+	}
+	catch (e) {
+		return false
+	}
+	return true;
 }
 
 export function downloadString(data: string, filename: string) {

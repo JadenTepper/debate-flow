@@ -17,7 +17,7 @@
 	import { activeMouse, flowsChange, nodes, pendingAction } from '$lib/models/store';
 	import { createKeyDownHandler } from '$lib/models/key';
 	import Prelude from '$lib/components/Prelude.svelte';
-	import { loadNodes } from '$lib/models/file';
+	import { loadNodes, tryImportSettingsJson } from '$lib/models/file';
 	import Timers from '$lib/components/Timers.svelte';
 	import Help from '$lib/components/Help.svelte';
 	import { settings } from '$lib/models/settings';
@@ -245,6 +245,10 @@
 	}
 
 	async function handleUpload(data: string) {
+		if (tryImportSettingsJson(data)) {
+			return;
+		}
+
 		let newNodes: Nodes | null = null;
 		try {
 			newNodes = loadNodes(data);

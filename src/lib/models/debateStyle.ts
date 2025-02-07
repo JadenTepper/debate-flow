@@ -29,8 +29,8 @@ export function getDebateStyle(): DebateStyle {
 }
 export function getAllDebateStyleFlows(): DebateStyleFlow[] {
 	let debateStyle = getDebateStyle();
-	if (debateStyle.altFlowSelectorSettingName && debateStyle.altFlowSelectorSettingName in settings.data) {
-		const subflow = debateStyle[`altFlows${settings.data[debateStyle.altFlowSelectorSettingName].value as number}`];
+	if (debateStyle.alternativeFlowSelectorSettingName && debateStyle.alternativeFlowSelectorSettingName in settings.data) {
+		const subflow = debateStyle[`alternativeFlows${settings.data[debateStyle.alternativeFlowSelectorSettingName].value as number}`];
 		if (subflow) return subflow;
 	}
 	return debateStyle.flows;
@@ -61,11 +61,11 @@ export type DebateStyleFlow = {
 };
 export type DebateStyle = {
 	flows: DebateStyleFlow[];
-	altFlowSelectorSettingName?: string;
+	alternativeFlowSelectorSettingName?: string;
 	timerSpeeches: TimerSpeech[];
 	prepTime?: number;
 } & {
-	[K in `altFlows${number}`]?: DebateStyleFlow[];
+	[K in `alternativeFlows${number}`]?: DebateStyleFlow[];
 };
 export const debateStyles: {
 	[key in DebateStyleKey]: DebateStyle;
@@ -236,8 +236,8 @@ export const debateStyles: {
 				invert: true
 			},
 		],
-		altFlowSelectorSettingName: "LDSubstyle",
-		altFlows1: [
+		alternativeFlowSelectorSettingName: "LDSubstyle",
+		alternativeFlows1: [
 			{
 				name: 'aff',
 				columns: ['AC', 'NR', '1AR', '2NR', '2AR'],

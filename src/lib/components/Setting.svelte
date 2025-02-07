@@ -7,6 +7,7 @@
 	import { tweened } from 'svelte/motion';
 	import { onDestroy } from 'svelte';
 	import { settingIn, settingOut } from '$lib/models/transition';
+	import ColorSelector from './ColorSelector.svelte';
 	export let setting: Setting;
 	export let key: string;
 
@@ -61,7 +62,10 @@
 		{#if setting.type == 'toggle'}
 			<Toggle bind:value auto={setting.auto} />
 		{/if}
-		{#if setting.info && setting.type != 'toggle'}
+		{#if setting.type == 'color'}
+			<ColorSelector bind:value />
+		{/if}
+		{#if setting.info && setting.type != 'toggle' && setting.type != 'color'}
 			<p class="info">{setting.info}</p>
 		{/if}
 	</span>
@@ -77,7 +81,7 @@
 	{#if setting.type == 'slider'}
 		<Slider bind:value auto={setting.auto} detail={setting.detail} />
 	{/if}
-	{#if setting.info && setting.type == 'toggle'}
+	{#if setting.info && (setting.type == 'toggle' || setting.type == 'color')}
 		<p class="info">{setting.info}</p>
 	{/if}
 </div>
