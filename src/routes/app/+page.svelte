@@ -17,7 +17,7 @@
 	import { activeMouse, flowsChange, nodes, pendingAction } from '$lib/models/store';
 	import { createKeyDownHandler } from '$lib/models/key';
 	import Prelude from '$lib/components/Prelude.svelte';
-	import { loadNodes, tryImportSettingsJson } from '$lib/models/file';
+	import { loadNodes, importSettingsJson } from '$lib/models/file';
 	import Timers from '$lib/components/Timers.svelte';
 	import Help from '$lib/components/Help.svelte';
 	import { settings } from '$lib/models/settings';
@@ -228,30 +228,35 @@
 		}
 	}
 	function readUpload() {
-		const files = (<HTMLInputElement>document.getElementById('uploadId'))?.files;
-		if (files == undefined) return;
-		let file = files[0];
+		const fileInput = document.getElementById('uploadId') as HTMLInputElement;
+		if (!fileInput?.files?.length) return;
+		const file = fileInput.files[0];
 
 		let reader: FileReader = new FileReader();
 		reader.onload = function (fileLoadedEvent) {
 			let uploadData = fileLoadedEvent.target?.result;
 			if (uploadData == undefined) return;
 			handleUpload(uploadData.toString());
+
+			fileInput.value = ''; // allow for the same file to be reuploaded
 		};
 		reader.readAsText(file, 'UTF-8');
 	}
+
 	function preventDefault(e: { preventDefault: () => void }) {
 		e.preventDefault();
 	}
 
 	async function handleUpload(data: string) {
-		if (tryImportSettingsJson(data)) {
+		let dataObj = JSON.parse(data);
+		if (dataObj["isSettings"]) {
+			importSettingsJson(dataObj);
 			return;
 		}
 
 		let newNodes: Nodes | null = null;
 		try {
-			newNodes = loadNodes(data);
+			newNodes = loadNodes(dataObj);
 		} catch (e) {
 			openPopup(Message, 'File Message', {
 				message: 'Invalid file',

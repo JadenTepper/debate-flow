@@ -1,3 +1,5 @@
+export const SETTINGS_VERSION = 1;
+
 type SettingBasic<T> = {
 	name: string;
 	value: T;
@@ -29,6 +31,11 @@ type SliderSetting = SettingBasic<number> & {
 export type Hexcode = `#${string}`;
 type ColorSetting = SettingBasic<Hexcode> & {
 	type: 'color';
+}
+export type SaveableSettings = {
+	settings: { [key: string]: number | boolean | string | Hexcode },
+	isSettings: boolean,
+	version: number
 }
 export type Setting = ToggleSetting | RadioSetting | SliderSetting | ColorSetting;
 class Settings {
@@ -66,36 +73,51 @@ class Settings {
 		};
 	}
 	convertSettingsToJson(includeDefaults?: boolean): string {
-		const jsonData: { [key: string]: number | boolean | string } = {};
+		const jsonSettingsData: { [key: string]: number | boolean | string | Hexcode } = {};
 		for (const key of Object.keys(this.data)) {
 			if (this.data[key].value != this.data[key].auto || includeDefaults) {
-				jsonData[key] = this.data[key].value;
+				jsonSettingsData[key] = this.data[key].value;
 				if (this.data[key].type == 'radio') {
 					const setting = this.data[key] as RadioSetting;
 					if (setting.detail.customOptionValue) {
-						jsonData[key + 'Custom'] = setting.detail.customOptionValue;
+						jsonSettingsData[key + 'Custom'] = setting.detail.customOptionValue;
 					}
 				}
 			}
 		}
+
+		let jsonData: SaveableSettings = {
+			settings: jsonSettingsData,
+			isSettings: true,
+			version: SETTINGS_VERSION
+		};
+
 		return JSON.stringify(jsonData);
 	}
-	parseJsonToSettings(jsonString: string) {
-		let jsonData = JSON.parse(jsonString);
+	parseJsonToSettings(jsonData: {[key: string]: any}) {
+		if (!jsonData["isSettings"]) {
+			return;
+		}
+
+		const settingsData = jsonData as SaveableSettings;
+
 		try {
-			for (const key in jsonData) {
-				if (this.data[key] == null) return;
+			for (const key in settingsData.settings) {
+				if (this.data[key] == null) {
+					continue;
+				};
 				if (this.data[key].type == 'radio') {
 					const setting = this.data[key] as RadioSetting;
-					if (jsonData[key + 'Custom']) {
-						setting.detail.customOptionValue = jsonData[key + 'Custom'];
+					if (settingsData["settings"][key + 'Custom']) {
+						setting.detail.customOptionValue = settingsData["settings"][key + 'Custom'] as string;
 					}
 				}
-				this.setValue(key, jsonData[key]);
+				this.setValue(key, settingsData["settings"][key] as number | boolean | Hexcode);
 			}
 		} catch (e) {
 			localStorage.setItem('settings', JSON.stringify({}));
 			this.resetToAuto();
+			return;
 		}
 	}
 	saveToLocalStorage() {
@@ -103,8 +125,9 @@ class Settings {
 		localStorage.setItem('settings', jsonData);
 	}
 	loadFromLocalStorage() {
-		const settingsObj = localStorage.getItem('settings');
-		if (settingsObj) {
+		const settingsData = localStorage.getItem('settings');
+		if (settingsData) {
+			const settingsObj = JSON.parse(settingsData);
 			this.parseJsonToSettings(settingsObj);
 		}
 	}
